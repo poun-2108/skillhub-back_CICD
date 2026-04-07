@@ -1,0 +1,41 @@
+/* ============================================================
+   APP CSS
+   Ce fichier reste volontairement simple pour éviter
+   les conflits avec les pages et composants.
+   ============================================================ */
+/* Fix global — évite tous les débordements */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Empêche le scroll horizontal sur toute la page */
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+/* Conteneur principal React */
+#root {
+    min-height: 100vh;
+}
+
+/* Classe de base éventuelle */
+.app {
+    min-height: 100vh;
+}
+
+/* Liens */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Boutons */
+button {
+    font-family: var(--font-body);
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    display: block;
+}

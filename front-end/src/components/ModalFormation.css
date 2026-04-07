@@ -1,0 +1,135 @@
+.mf-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300;
+    backdrop-filter: blur(6px);
+}
+
+.mf-boite {
+    background-color: #1a2236;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    animation: mf-entree 0.22s ease;
+    color: #f0f4ff;
+}
+
+@keyframes mf-entree {
+    from { opacity: 0; transform: translateY(-18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.mf-fermer {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #7a8aaa;
+    font-size: 0.9rem;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.mf-fermer:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #f0f4ff;
+}
+
+.mf-titre {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #f0f4ff;
+    margin-bottom: 1.5rem;
+}
+
+.mf-erreur {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #f87171;
+    padding: 0.65rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.mf-formulaire {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.mf-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #c8d3e8;
+    margin-top: 0.5rem;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.mf-input,
+.mf-textarea,
+.mf-select {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 0.92rem;
+    color: #f0f4ff;
+    margin-bottom: 0.25rem;
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.mf-input::placeholder,
+.mf-textarea::placeholder {
+    color: #7a8aaa;
+}
+
+.mf-input:focus,
+.mf-textarea:focus,
+.mf-select:focus {
+    border-color: #4f8ef7;
+    box-shadow: 0 0 0 3px rgba(79, 142, 247, 0.12);
+}
+
+.mf-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.mf-select {
+    cursor: pointer;
+    background-color: #1a2236;
+}
+
+.mf-select option {
+    background-color: #1a2236;
+    color: #f0f4ff;
+}
+
+.mf-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}

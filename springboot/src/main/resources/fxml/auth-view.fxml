@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Interface graphique d'authentification.
+
+    Cette vue permet :
+    - de saisir le nom, l'email et le mot de passe
+    - de confirmer le mot de passe
+    - de voir la force du mot de passe
+    - de verifier si les mots de passe correspondent
+    - d'effectuer une inscription ou une connexion
+
+    Cette interface est liee au controleur :
+    com.example.auth.ui.AuthUiController
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10" alignment="CENTER" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.auth.ui.AuthUiController">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20" />
+    </padding>
+
+    <!-- Champ pour le nom -->
+    <TextField fx:id="nameField" promptText="Nom" />
+
+    <!-- Champ pour l'email -->
+    <TextField fx:id="emailField" promptText="Email" />
+
+    <!-- Champ pour le mot de passe -->
+    <PasswordField fx:id="passwordField" promptText="Mot de passe" />
+
+    <!-- Champ pour confirmer le mot de passe -->
+    <PasswordField fx:id="passwordConfirmField" promptText="Confirmer le mot de passe" />
+
+    <!-- Affichage de la force du mot de passe -->
+    <Label fx:id="passwordStrengthLabel" text="Force du mot de passe" />
+
+    <!-- Affichage de correspondance des mots de passe -->
+    <Label fx:id="passwordMatchLabel" text="" />
+
+    <!-- Bouton d'inscription -->
+    <Button text="S'inscrire" onAction="#handleRegister" />
+
+    <!-- Bouton de connexion -->
+    <Button text="Se connecter" onAction="#handleLogin" />
+
+    <!-- Message de retour pour l'utilisateur -->
+    <Label fx:id="messageLabel" text="" />
+</VBox>
