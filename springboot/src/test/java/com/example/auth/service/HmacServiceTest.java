@@ -7,13 +7,10 @@ import org.junit.jupiter.api.Test;
  * Tests du service HMAC.
  *
  * @author Poun
- * @version 3.2
+ * @version 5.0
  */
 public class HmacServiceTest {
 
-    /**
-     * Service à tester.
-     */
     private final HmacService hmacService = new HmacService();
 
     /**
@@ -22,12 +19,11 @@ public class HmacServiceTest {
     @Test
     void testBuildMessage() {
         String message = hmacService.buildMessage("poun@gmail.com", "abc-123", 1700000000L);
-
         Assertions.assertEquals("poun@gmail.com:abc-123:1700000000", message);
     }
 
     /**
-     * Vérifie qu'un HMAC est calculé.
+     * Vérifie qu'un HMAC est calculé et non vide.
      */
     @Test
     void testHmacSha256NotNull() {
@@ -64,4 +60,34 @@ public class HmacServiceTest {
         Assertions.assertNotEquals(hmac1, hmac2);
     }
 
+    /**
+     * ✅ Couvre generateHmac() — méthode jusqu'ici non testée.
+     * Vérifie que generateHmac retourne un résultat non nul.
+     */
+    @Test
+    void testGenerateHmacNotNull() {
+        String hmac = hmacService.generateHmac("message-de-test");
+        Assertions.assertNotNull(hmac);
+        Assertions.assertFalse(hmac.isBlank());
+    }
+
+    /**
+     * Vérifie que generateHmac est déterministe pour le même message.
+     */
+    @Test
+    void testGenerateHmacIsDeterministic() {
+        String hmac1 = hmacService.generateHmac("message-test");
+        String hmac2 = hmacService.generateHmac("message-test");
+        Assertions.assertEquals(hmac1, hmac2);
+    }
+
+    /**
+     * Vérifie que generateHmac produit des résultats différents pour des messages différents.
+     */
+    @Test
+    void testGenerateHmacDifferentMessagesGiveDifferentOutputs() {
+        String hmac1 = hmacService.generateHmac("messageA");
+        String hmac2 = hmacService.generateHmac("messageB");
+        Assertions.assertNotEquals(hmac1, hmac2);
+    }
 }

@@ -1,52 +1,77 @@
+# ─── SkillHub — Stack complète ────────────────────────────────────────────────
 services:
+
+  # ── MySQL (base principale) ──────────────────────────────────────────────────
   mysql:
     image: mysql:8.0
     container_name: skillhub_mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: skillhub_db
+      MYSQL_DATABASE: skillhub
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - skillhub_mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
-      interval: 10s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 20s
 
-  springboot:
-    build: ./springboot
-    container_name: skillhub_auth
-    ports:
-      - "8000:8000"
-    depends_on:
-      mysql:
-        condition: service_healthy
+  # ── MongoDB (logs activité) ──────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: skillhub_mongodb
+    restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/skillhub_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-
-  laravel:
-    build: ./laravel
-    container_name: skillhub_laravel
+      MONGO_INITDB_DATABASE: skillhub_messages
     ports:
-      - "9000:8000"
+      - "27017:27017"
+    volumes:
+      - skillhub_mongo_data:/data/db
+
+  # ── Backend Laravel ───────────────────────────────────────────────────────────
+  skillhub-back:
+    build:
+      context: ./skillhub-back     # Dossier contenant le projet Laravel
+      dockerfile: Dockerfile        # Dockerfile.skillhub-back renommé en Dockerfile
+    container_name: skillhub_back
+    restart: always
     depends_on:
       mysql:
         condition: service_healthy
+      mongodb:
+        condition: service_started
+    ports:
+      - "8001:8001"
+    environment:
+      APP_ENV: local
+      APP_KEY: base64:GENEREZ_UNE_CLE_ICI
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: skillhub
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_DATABASE: skillhub_messages
+      JWT_SECRET: GENEREZ_UN_SECRET_ICI
+      MAIL_MAILER: log
 
+  # ── Frontend React ────────────────────────────────────────────────────────────
   frontend:
-    build: ./front-end
+    build:
+      context: ./skillhub-front    # Dossier contenant le projet React
+      dockerfile: Dockerfile        # Dockerfile.frontend renommé en Dockerfile
     container_name: skillhub_front
+    restart: always
+    depends_on:
+      - skillhub-back
     ports:
       - "5173:5173"
-    depends_on:
-      - springboot
-      - laravel
 
 volumes:
-  mysql_data:
+  skillhub_mysql_data:
+  skillhub_mongo_data:

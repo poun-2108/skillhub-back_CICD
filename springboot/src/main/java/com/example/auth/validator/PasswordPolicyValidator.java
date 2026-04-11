@@ -11,16 +11,16 @@ package com.example.auth.validator;
  * - au moins un caractère spécial
  *
  * @author Poun
- * @version 2.2
+ * @version 2.3
  */
 public class PasswordPolicyValidator {
 
     /**
-     * Vérifie si le mot de passe respecte la politique demandée.
-     *
-     * @param password mot de passe à vérifier
-     * @return true si le mot de passe est valide, sinon false
+     * Longueur minimale du mot de passe.
+     * ✅ Fix : la longueur minimale était 8 au lieu de 12 (incohérence avec getRulesMessage).
      */
+    private static final int MIN_LENGTH = 12;
+
     /**
      * Vérifie si le mot de passe respecte les règles de sécurité.
      *
@@ -33,8 +33,8 @@ public class PasswordPolicyValidator {
             return false;
         }
 
-        // longueur minimale
-        if (password.length() < 8) {
+        // longueur minimale : 12 caractères (fix : était 8)
+        if (password.length() < MIN_LENGTH) {
             return false;
         }
 
@@ -60,6 +60,7 @@ public class PasswordPolicyValidator {
 
         return true;
     }
+
     /**
      * Retourne un message simple expliquant la règle.
      *

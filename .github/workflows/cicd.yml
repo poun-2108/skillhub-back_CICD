@@ -1,0 +1,389 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Pipeline CI/CD — SkillHub
+#
+# Déclenchement : push ou PR sur main
+#
+# Jobs :
+#   1. test-laravel      → PHPUnit + couverture ≥ 96 %
+#   2. test-springboot   → Maven/JaCoCo + couverture ≥ 96 %
+#   3. sonarcloud        → Analyse qualité + Quality Gate
+#   4. docker-build-push → Build & push images vers AWS ECR  (main only)
+#   5. deploy            → Mise à jour des services AWS ECS   (main only)
+#
+# Secrets requis dans GitHub → Settings → Secrets :
+#   SONAR_TOKEN              Token SonarCloud
+#   AWS_ACCESS_KEY_ID        Clé AWS
+#   AWS_SECRET_ACCESS_KEY    Clé secrète AWS
+#   AWS_REGION               Région AWS (ex : eu-west-3)
+#   ECR_REGISTRY             URL du registre ECR (ex : 123456789.dkr.ecr.eu-west-3.amazonaws.com)
+#   ECS_CLUSTER              Nom du cluster ECS
+#   ECS_SERVICE_LARAVEL      Nom du service ECS pour Laravel
+#   ECS_SERVICE_SPRINGBOOT   Nom du service ECS pour Spring Boot
+#   ECS_SERVICE_FRONTEND     Nom du service ECS pour le frontend
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: CI/CD — SkillHub
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Annule les runs précédents sur la même branche si un nouveau push arrive
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ══════════════════════════════════════════════════════════════════════════════
+jobs:
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 1 — Tests Laravel (PHPUnit + couverture Clover)
+  # ────────────────────────────────────────────────────────────────────────────
+  test-laravel:
+    name: "Tests Laravel (PHPUnit)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # PHP 8.2 avec toutes les extensions nécessaires (mongodb inclus)
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mongodb, xdebug, pdo_sqlite, zip, bcmath
+          coverage: xdebug
+          ini-values: xdebug.mode=coverage
+
+      # Cache des dépendances Composer
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: skillhub-back/vendor
+          key: composer-${{ hashFiles('skillhub-back/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Installer les dépendances Composer
+        working-directory: skillhub-back
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      # Générer APP_KEY et JWT_SECRET dans .env (requis par l'application)
+      - name: Préparer le fichier .env de test
+        working-directory: skillhub-back
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+          php artisan jwt:secret --no-interaction
+
+      # Lancer les tests et générer le rapport Clover
+      - name: Exécuter les tests PHPUnit avec couverture
+        working-directory: skillhub-back
+        run: php artisan test --coverage-clover coverage.xml
+
+      # Vérifier que la couverture atteint 96 %
+      - name: Vérifier la couverture ≥ 96 %
+        working-directory: skillhub-back
+        run: |
+          php -r "
+            \$xml    = simplexml_load_file('coverage.xml');
+            \$m      = \$xml->project->metrics;
+            \$total  = (int)\$m['statements'];
+            \$covered = (int)\$m['coveredstatements'];
+            if (\$total === 0) { echo 'Aucune donnée de couverture.\n'; exit(1); }
+            \$pct = round(\$covered / \$total * 100, 2);
+            echo \"Couverture : {\$pct}%\n\";
+            if (\$pct < 96) {
+              echo \"ECHEC : couverture {\$pct}% < 96% requise pour AWS.\n\";
+              exit(1);
+            }
+            echo \"OK : couverture suffisante pour le déploiement.\n\";
+          "
+
+      # Exposer le rapport pour SonarCloud
+      - name: Archiver le rapport de couverture Laravel
+        uses: actions/upload-artifact@v4
+        with:
+          name: laravel-coverage
+          path: skillhub-back/coverage.xml
+          retention-days: 1
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 2 — Tests Spring Boot (Maven + JaCoCo)
+  # ────────────────────────────────────────────────────────────────────────────
+  test-springboot:
+    name: "Tests Spring Boot (JaCoCo)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      # Cache des dépendances Maven
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('springboot/pom.xml') }}
+          restore-keys: maven-
+
+      - name: Rendre mvnw exécutable
+        working-directory: springboot
+        run: chmod +x mvnw
+
+      # verify = compile + test + JaCoCo report
+      - name: Exécuter les tests Maven + rapport JaCoCo
+        working-directory: springboot
+        run: ./mvnw verify --no-transfer-progress
+
+      # Vérifier que la couverture de lignes atteint 96 %
+      - name: Vérifier la couverture ≥ 96 %
+        working-directory: springboot
+        run: |
+          python3 - <<'PYEOF'
+          import xml.etree.ElementTree as ET, sys, os
+
+          report = 'target/site/jacoco/jacoco.xml'
+          if not os.path.exists(report):
+              print('Rapport JaCoCo introuvable.')
+              sys.exit(1)
+
+          # jacoco.xml déclare une DTD externe — on ignore la validation
+          ET.register_namespace('', '')
+          tree = ET.parse(report)
+          root = tree.getroot()
+
+          for counter in root.findall('counter'):
+              if counter.get('type') == 'LINE':
+                  missed  = int(counter.get('missed', 0))
+                  covered = int(counter.get('covered', 0))
+                  total   = missed + covered
+                  pct     = (covered / total * 100) if total else 0
+                  print(f'Couverture de lignes : {pct:.2f}%')
+                  if pct < 96:
+                      print(f'ECHEC : couverture {pct:.2f}% < 96% requise pour AWS.')
+                      sys.exit(1)
+                  print('OK : couverture suffisante pour le déploiement.')
+                  sys.exit(0)
+
+          print('Compteur LINE introuvable dans le rapport JaCoCo.')
+          sys.exit(1)
+          PYEOF
+
+      # Exposer le rapport pour SonarCloud
+      - name: Archiver le rapport JaCoCo
+        uses: actions/upload-artifact@v4
+        with:
+          name: springboot-coverage
+          path: springboot/target/site/jacoco/
+          retention-days: 1
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 3 — Analyse SonarCloud + Quality Gate
+  # ────────────────────────────────────────────────────────────────────────────
+  sonarcloud:
+    name: "SonarCloud — Qualité & Quality Gate"
+    needs: [test-laravel, test-springboot]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (historique complet pour SonarCloud)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Récupérer les rapports de couverture générés par les jobs précédents
+      - name: Récupérer la couverture Laravel
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-coverage
+          path: skillhub-back/
+
+      - name: Récupérer la couverture Spring Boot
+        uses: actions/download-artifact@v4
+        with:
+          name: springboot-coverage
+          path: springboot/target/site/jacoco/
+
+      # ── Analyse SonarCloud — Laravel ────────────────────────────────────────
+      - name: Setup PHP 8.2 (pour sonar-scanner PHP)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mongodb, zip
+
+      - name: Analyse SonarCloud — Laravel
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: skillhub-back
+          args: >
+            -Dsonar.qualitygate.wait=true
+
+      # ── Analyse SonarCloud — Spring Boot ────────────────────────────────────
+      - name: Setup Java 17 (pour sonar Maven)
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('springboot/pom.xml') }}
+          restore-keys: maven-
+
+      - name: Rendre mvnw exécutable
+        working-directory: springboot
+        run: chmod +x mvnw
+
+      - name: Analyse SonarCloud — Spring Boot
+        working-directory: springboot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./mvnw sonar:sonar \
+            -Dsonar.branch.name="${{ github.head_ref || github.ref_name }}" \
+            -Dsonar.qualitygate.wait=true \
+            --no-transfer-progress
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 4 — Build & Push images Docker → AWS ECR
+  # Déclenché uniquement sur push vers main (pas sur les PR)
+  # ────────────────────────────────────────────────────────────────────────────
+  docker-build-push:
+    name: "Build & Push → AWS ECR"
+    needs: [sonarcloud]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    outputs:
+      image-tag: ${{ steps.tag.outputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurer les credentials AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Connexion à Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Tag = SHA du commit (traçabilité) + latest
+      - name: Définir le tag d'image
+        id: tag
+        run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      # ── Laravel ─────────────────────────────────────────────────────────────
+      - name: Build & Push — Laravel
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/skillhub-laravel:$IMAGE_TAG \
+            -t $ECR_REGISTRY/skillhub-laravel:latest \
+            ./skillhub-back
+          docker push $ECR_REGISTRY/skillhub-laravel:$IMAGE_TAG
+          docker push $ECR_REGISTRY/skillhub-laravel:latest
+
+      # ── Spring Boot ──────────────────────────────────────────────────────────
+      - name: Build & Push — Spring Boot
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/skillhub-springboot:$IMAGE_TAG \
+            -t $ECR_REGISTRY/skillhub-springboot:latest \
+            ./springboot
+          docker push $ECR_REGISTRY/skillhub-springboot:$IMAGE_TAG
+          docker push $ECR_REGISTRY/skillhub-springboot:latest
+
+      # ── Frontend ─────────────────────────────────────────────────────────────
+      - name: Build & Push — Frontend
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/skillhub-frontend:$IMAGE_TAG \
+            -t $ECR_REGISTRY/skillhub-frontend:latest \
+            ./skillhub-front
+          docker push $ECR_REGISTRY/skillhub-frontend:$IMAGE_TAG
+          docker push $ECR_REGISTRY/skillhub-frontend:latest
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 5 — Déploiement → AWS ECS
+  # ────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: "Déploiement → AWS ECS"
+    needs: [docker-build-push]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configurer les credentials AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Force le redémarrage de chaque service avec la nouvelle image
+      - name: Déployer le service Laravel
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE_LARAVEL }} \
+            --force-new-deployment \
+            --output text \
+            --query 'service.serviceName'
+
+      - name: Déployer le service Spring Boot
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE_SPRINGBOOT }} \
+            --force-new-deployment \
+            --output text \
+            --query 'service.serviceName'
+
+      - name: Déployer le service Frontend
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE_FRONTEND }} \
+            --force-new-deployment \
+            --output text \
+            --query 'service.serviceName'
+
+      # Attend que tous les services soient stables (tâches healthy)
+      - name: Attendre la stabilité des services ECS
+        run: |
+          echo "Attente de la stabilisation des services ECS..."
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --services \
+              ${{ secrets.ECS_SERVICE_LARAVEL }} \
+              ${{ secrets.ECS_SERVICE_SPRINGBOOT }} \
+              ${{ secrets.ECS_SERVICE_FRONTEND }}
+          echo "Tous les services sont stables. Déploiement terminé."

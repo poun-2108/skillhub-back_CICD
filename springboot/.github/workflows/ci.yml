@@ -3,11 +3,12 @@ name: TP5 CI/CD
 on:
   push:
     branches:
+      - master
       - main
       - tp5-dev
-      - v5-final-ok
   pull_request:
     branches:
+      - master
       - main
 
 jobs:
@@ -48,7 +49,7 @@ jobs:
             -Dsonar.projectKey=Nirina2108_TP_5_Docker \
             -Dsonar.organization=nirina2108 \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.token=${SONAR_TOKEN}
 
       - name: Build image Docker
         run: docker build -t nirina2108/tp_5_docker:latest .

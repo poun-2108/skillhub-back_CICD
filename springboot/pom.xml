@@ -13,30 +13,31 @@
 	</parent>
 
 	<groupId>com.example</groupId>
-	<artifactId>TP_5_Docker</artifactId>
-	<version>3.0.1-SNAPSHOT</version>
-	<name>TP_5_Docker</name>
-	<description>TP 5 Dockerisation d'une application Spring Boot securisee</description>
+	<artifactId>moustass-auth-service</artifactId>
+	<version>1.0.0</version>
+	<name>moustass-auth-service</name>
+	<description>Auth Service - Moustass CloudSec</description>
 
 	<properties>
 		<java.version>17</java.version>
 
+		<!-- SonarCloud -->
 		<sonar.organization>nirina2108</sonar.organization>
 		<sonar.projectKey>Nirina2108_TP_5_Docker</sonar.projectKey>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+		<sonar.coverage.jacoco.xmlReportPaths>
+			target/site/jacoco/jacoco.xml
+		</sonar.coverage.jacoco.xmlReportPaths>
 
+		<!-- Exclusions SonarCloud - pas de coverage sur ces fichiers -->
 		<sonar.coverage.exclusions>
-			**/client/**,
-			**/ui/**,
 			**/*Application.java,
-			**/*UiApplication.java,
-			**/*UiController.java,
 			**/exception/**
 		</sonar.coverage.exclusions>
 	</properties>
 
 	<dependencies>
+
 		<!-- Spring Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -62,23 +63,35 @@
 			<artifactId>spring-security-crypto</artifactId>
 		</dependency>
 
-		<!-- Jackson pour l'interface JavaFX -->
+		<!-- Jackson JSON -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
-		<!-- JavaFX -->
+		<!-- JWT - jsonwebtoken -->
 		<dependency>
-			<groupId>org.openjfx</groupId>
-			<artifactId>javafx-controls</artifactId>
-			<version>21.0.6</version>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.11.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Email - confirmation inscription -->
 		<dependency>
-			<groupId>org.openjfx</groupId>
-			<artifactId>javafx-fxml</artifactId>
-			<version>21.0.6</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
 		<!-- Tests -->
@@ -88,32 +101,25 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- H2 base en memoire pour les tests -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 
 	<build>
 		<plugins>
+
 			<!-- Spring Boot -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-			<!-- JavaFX -->
-			<plugin>
-				<groupId>org.openjfx</groupId>
-				<artifactId>javafx-maven-plugin</artifactId>
-				<version>0.0.8</version>
-				<configuration>
-					<mainClass>com.example.auth.client.AuthClientUI</mainClass>
-				</configuration>
-			</plugin>
-
-			<!-- JaCoCo -->
+			<!-- JaCoCo coverage -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -124,7 +130,6 @@
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
-
 					<execution>
 						<id>report</id>
 						<phase>verify</phase>
@@ -152,6 +157,7 @@
 				<artifactId>sonar-maven-plugin</artifactId>
 				<version>3.11.0.3922</version>
 			</plugin>
+
 		</plugins>
 	</build>
 

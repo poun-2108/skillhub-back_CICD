@@ -5,28 +5,41 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests du validateur de mot de passe.
+ * ✅ Adapté après correction : longueur minimale = 12 (était 8).
  *
  * @author Poun
- * @version 2.2
+ * @version 5.0
  */
 public class PasswordPolicyValidatorTest {
 
+    private final PasswordPolicyValidator validator = new PasswordPolicyValidator();
+
     /**
-     * Vérifie qu'un bon mot de passe est accepté.
+     * Vérifie qu'un bon mot de passe est accepté (12 caractères minimum).
      */
     @Test
     void testValidPassword() {
-        PasswordPolicyValidator validator = new PasswordPolicyValidator();
-        Assertions.assertTrue(validator.isValid("Bonjour123!A"));
+        Assertions.assertTrue(validator.isValid("Bonjour123!Aa"));
     }
 
     /**
-     * Vérifie qu'un mot de passe trop court est refusé.
+     * Vérifie qu'un mot de passe de 11 caractères est refusé (< 12).
+     * ✅ Fix : la version précédente testait "Bon12!" (6 chars) — ce test
+     * est plus précis car il cible exactement la limite de 12 caractères.
      */
     @Test
     void testPasswordTooShort() {
-        PasswordPolicyValidator validator = new PasswordPolicyValidator();
-        Assertions.assertFalse(validator.isValid("Bon12!"));
+        // 11 caractères : juste en dessous de la limite
+        Assertions.assertFalse(validator.isValid("Bonjour12!A")); // 11 chars
+    }
+
+    /**
+     * Vérifie qu'un mot de passe de 12 caractères exactement est accepté.
+     */
+    @Test
+    void testPasswordExactlyMinLength() {
+        // 12 caractères : exactement la limite
+        Assertions.assertTrue(validator.isValid("Bonjour12!Ab")); // 12 chars
     }
 
     /**
@@ -34,8 +47,7 @@ public class PasswordPolicyValidatorTest {
      */
     @Test
     void testPasswordWithoutUppercase() {
-        PasswordPolicyValidator validator = new PasswordPolicyValidator();
-        Assertions.assertFalse(validator.isValid("bonjour123!"));
+        Assertions.assertFalse(validator.isValid("bonjour1234!a"));
     }
 
     /**
@@ -43,8 +55,7 @@ public class PasswordPolicyValidatorTest {
      */
     @Test
     void testPasswordWithoutLowercase() {
-        PasswordPolicyValidator validator = new PasswordPolicyValidator();
-        Assertions.assertFalse(validator.isValid("BONJOUR123!"));
+        Assertions.assertFalse(validator.isValid("BONJOUR1234!A"));
     }
 
     /**
@@ -52,8 +63,7 @@ public class PasswordPolicyValidatorTest {
      */
     @Test
     void testPasswordWithoutDigit() {
-        PasswordPolicyValidator validator = new PasswordPolicyValidator();
-        Assertions.assertFalse(validator.isValid("BonjourTest!"));
+        Assertions.assertFalse(validator.isValid("BonjourTest!!A"));
     }
 
     /**
@@ -61,8 +71,7 @@ public class PasswordPolicyValidatorTest {
      */
     @Test
     void testPasswordWithoutSpecialCharacter() {
-        PasswordPolicyValidator validator = new PasswordPolicyValidator();
-        Assertions.assertFalse(validator.isValid("Bonjour12345"));
+        Assertions.assertFalse(validator.isValid("Bonjour12345A"));
     }
 
     /**
@@ -70,7 +79,17 @@ public class PasswordPolicyValidatorTest {
      */
     @Test
     void testNullPassword() {
-        PasswordPolicyValidator validator = new PasswordPolicyValidator();
         Assertions.assertFalse(validator.isValid(null));
+    }
+
+    /**
+     * Vérifie que getRulesMessage retourne un message non vide.
+     */
+    @Test
+    void testGetRulesMessage() {
+        String message = validator.getRulesMessage();
+        Assertions.assertNotNull(message);
+        Assertions.assertFalse(message.isBlank());
+        Assertions.assertTrue(message.contains("12"));
     }
 }

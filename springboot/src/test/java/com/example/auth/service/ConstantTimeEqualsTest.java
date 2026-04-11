@@ -8,17 +8,17 @@ import java.lang.reflect.Method;
 /**
  * Test de la comparaison en temps constant.
  *
- * @author Poun
- * @version 3.4
+ * @author Nirina
+ * @version 1.0
  */
 public class ConstantTimeEqualsTest {
 
     /**
-     * Teste égalité vraie.
+     * Teste egalite vraie.
      */
     @Test
     void testConstantTimeEqualsTrue() throws Exception {
-        AuthService service = new AuthService(null, null, null, null);
+        AuthService service = new AuthService(null, null, null, null, null, null, null, null);
 
         Method method = AuthService.class.getDeclaredMethod("constantTimeEquals", String.class, String.class);
         method.setAccessible(true);
@@ -29,11 +29,11 @@ public class ConstantTimeEqualsTest {
     }
 
     /**
-     * Teste égalité fausse.
+     * Teste egalite fausse.
      */
     @Test
     void testConstantTimeEqualsFalse() throws Exception {
-        AuthService service = new AuthService(null, null, null, null);
+        AuthService service = new AuthService(null, null, null, null, null, null, null, null);
 
         Method method = AuthService.class.getDeclaredMethod("constantTimeEquals", String.class, String.class);
         method.setAccessible(true);
@@ -44,11 +44,11 @@ public class ConstantTimeEqualsTest {
     }
 
     /**
-     * Teste longueur différente.
+     * Teste longueur differente.
      */
     @Test
     void testConstantTimeEqualsDifferentLength() throws Exception {
-        AuthService service = new AuthService(null, null, null, null);
+        AuthService service = new AuthService(null, null, null, null, null, null, null, null);
 
         Method method = AuthService.class.getDeclaredMethod("constantTimeEquals", String.class, String.class);
         method.setAccessible(true);

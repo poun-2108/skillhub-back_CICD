@@ -8,29 +8,37 @@ import com.example.auth.service.AuthService;
 import com.example.auth.service.ClientProofService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.auth.dto.ChangePasswordRequest;
+
 import java.util.Map;
 
 /**
- * Controller REST pour l'authentification.
+ * Controller REST pour l authentification.
  *
- * TP3 :
- * - préparation de la preuve HMAC côté client
- * - transition vers un login sans mot de passe transmis
+ * Endpoints :
+ * - POST /register
+ * - GET  /verify-email
+ * - POST /client-proof
+ * - POST /login
+ * - GET  /me
+ * - POST /logout
+ * - PUT  /change-password
  *
- * @author Poun
- * @version 3.2
+ * @author Nirina
+ * @version 1.0
  */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     /**
-     * Service principal d'authentification.
+     * Service principal d authentification.
      */
     private final AuthService authService;
 
@@ -43,7 +51,7 @@ public class AuthController {
      * Constructeur.
      *
      * @param authService service auth
-     * @param clientProofService service client simulé
+     * @param clientProofService service client simule
      */
     public AuthController(AuthService authService, ClientProofService clientProofService) {
         this.authService = authService;
@@ -51,10 +59,10 @@ public class AuthController {
     }
 
     /**
-     * Endpoint d'inscription.
+     * Endpoint d inscription.
      *
-     * @param request données d'inscription
-     * @return réponse simple
+     * @param request donnees d inscription
+     * @return reponse simple
      */
     @PostMapping("/register")
     public Map<String, Object> register(@RequestBody RegisterRequest request) {
@@ -62,27 +70,22 @@ public class AuthController {
     }
 
     /**
-     * Endpoint de connexion.
+     * Endpoint de verification email.
+     * Appele via le lien envoye par email.
      *
-     * Pour l'étape 3.2, on reçoit déjà la structure TP3 :
-     * email + nonce + timestamp + hmac.
-     * La vraie vérification côté serveur sera branchée en 3.3.
-     *
-     * @param request preuve de connexion
-     * @return réponse temporaire
+     * @param token token de verification
+     * @return message de succes ou erreur
      */
-    @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody LoginRequest request) {
-        return authService.login(request);
+    @GetMapping("/verify-email")
+    public Map<String, Object> verifyEmail(@RequestParam String token) {
+        return authService.verifyEmail(token);
     }
 
     /**
-     * Endpoint utilitaire pour simuler le calcul côté client.
-     *
-     * Cet endpoint est pédagogique pour Postman et les tests du TP.
+     * Endpoint utilitaire pour simuler le calcul cote client.
      *
      * @param request email + password
-     * @return preuve complète
+     * @return preuve complete
      */
     @PostMapping("/client-proof")
     public ClientProofResponse buildClientProof(@RequestBody ClientProofRequest request) {
@@ -90,7 +93,18 @@ public class AuthController {
     }
 
     /**
-     * Endpoint pour récupérer l'utilisateur connecté.
+     * Endpoint de connexion.
+     *
+     * @param request preuve de connexion HMAC
+     * @return reponse avec token ou erreur
+     */
+    @PostMapping("/login")
+    public Map<String, Object> login(@RequestBody LoginRequest request) {
+        return authService.login(request);
+    }
+
+    /**
+     * Endpoint pour recuperer l utilisateur connecte.
      *
      * @param authorizationHeader header Authorization
      * @return infos utilisateur
@@ -103,10 +117,10 @@ public class AuthController {
     }
 
     /**
-     * Endpoint de déconnexion.
+     * Endpoint de deconnexion.
      *
      * @param authorizationHeader header Authorization
-     * @return message de déconnexion
+     * @return message de deconnexion
      */
     @PostMapping("/logout")
     public Map<String, Object> logout(
@@ -114,14 +128,15 @@ public class AuthController {
     ) {
         return authService.logout(authorizationHeader);
     }
+
     /**
-     * Change le mot de passe de l'utilisateur connecté.
+     * Change le mot de passe de l utilisateur connecte.
      *
      * @param authorizationHeader header Authorization avec Bearer token
      * @param request ancien et nouveau mot de passe
-     * @return réponse JSON
+     * @return reponse JSON
      */
-    @PostMapping("/change-password")
+    @PutMapping("/change-password")
     public Map<String, Object> changePassword(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestBody ChangePasswordRequest request) {

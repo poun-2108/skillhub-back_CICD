@@ -3,9 +3,13 @@ package com.example.auth.controller;
 import com.example.auth.AuthApplication;
 import com.example.auth.dto.LoginRequest;
 import com.example.auth.dto.RegisterRequest;
+import com.example.auth.entity.User;
+import com.example.auth.repository.AuthNonceRepository;
+import com.example.auth.repository.UserRepository;
 import com.example.auth.service.HmacService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,12 +20,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 /**
- * Tests du controller d'authentification.
+ * Tests du controller d authentification.
  *
- * Ces tests vérifient surtout le contenu renvoyé par les endpoints.
- *
- * @author Poun
- * @version 3.2
+ * @author Nirina
+ * @version 1.0
  */
 @SpringBootTest(classes = AuthApplication.class)
 @AutoConfigureMockMvc
@@ -52,10 +54,28 @@ public class AuthControllerTest {
     private HmacService hmacService;
 
     /**
-     * Construit une requête d'inscription.
+     * Repository utilisateur.
+     */
+    @Autowired
+    private UserRepository userRepository;
+
+    /**
+     * Repository nonces.
+     */
+    @Autowired
+    private AuthNonceRepository authNonceRepository;
+
+    @BeforeEach
+    void setUp() {
+        authNonceRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
+    /**
+     * Construit une requete d inscription.
      *
      * @param email email utilisateur
-     * @return requête d'inscription
+     * @return requete d inscription
      */
     private RegisterRequest buildRegister(String email) {
         RegisterRequest request = new RegisterRequest();
@@ -66,10 +86,29 @@ public class AuthControllerTest {
     }
 
     /**
-     * Construit une requête de connexion valide.
+     * Inscrit un utilisateur et active son email directement en base.
      *
      * @param email email utilisateur
-     * @return requête login
+     */
+    private void registerAndActivate(String email) throws Exception {
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post(URL + "/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(buildRegister(email)))
+        ).andReturn();
+
+        User user = userRepository.findByEmail(email).orElseThrow();
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        userRepository.save(user);
+    }
+
+    /**
+     * Construit une requete de connexion valide.
+     *
+     * @param email email utilisateur
+     * @return requete login
      */
     private LoginRequest buildLogin(String email) {
         long timestamp = System.currentTimeMillis() / 1000;
@@ -97,7 +136,8 @@ public class AuthControllerTest {
         RegisterRequest request = buildRegister("test1@gmail.com");
 
         MvcResult result = mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(URL + "/register")
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post(URL + "/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         ).andReturn();
@@ -108,7 +148,7 @@ public class AuthControllerTest {
     }
 
     /**
-     * Teste une inscription avec email déjà utilisé.
+     * Teste une inscription avec email deja utilise.
      *
      * @throws Exception si erreur
      */
@@ -117,13 +157,15 @@ public class AuthControllerTest {
         RegisterRequest request = buildRegister("dup@gmail.com");
 
         mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(URL + "/register")
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post(URL + "/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         ).andReturn();
 
         MvcResult result = mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(URL + "/register")
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post(URL + "/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         ).andReturn();
@@ -143,14 +185,12 @@ public class AuthControllerTest {
     void testLoginOK() throws Exception {
         String email = "login@gmail.com";
 
-        mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(URL + "/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(buildRegister(email)))
-        ).andReturn();
+        // Inscription + activation email
+        registerAndActivate(email);
 
         MvcResult result = mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(URL + "/login")
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post(URL + "/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(buildLogin(email)))
         ).andReturn();
@@ -171,17 +211,15 @@ public class AuthControllerTest {
     void testLoginInvalidHmac() throws Exception {
         String email = "fail@gmail.com";
 
-        mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(URL + "/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(buildRegister(email)))
-        ).andReturn();
+        // Inscription + activation email
+        registerAndActivate(email);
 
         LoginRequest request = buildLogin(email);
         request.setHmac("fake");
 
         MvcResult result = mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(URL + "/login")
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post(URL + "/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         ).andReturn();
@@ -199,7 +237,8 @@ public class AuthControllerTest {
     @Test
     void testMeWithoutToken() throws Exception {
         MvcResult result = mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(URL + "/me")
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .get(URL + "/me")
         ).andReturn();
 
         String response = result.getResponse().getContentAsString();
@@ -216,7 +255,8 @@ public class AuthControllerTest {
     @Test
     void testLogoutWithoutToken() throws Exception {
         MvcResult result = mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(URL + "/logout")
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post(URL + "/logout")
         ).andReturn();
 
         String response = result.getResponse().getContentAsString();
