@@ -557,6 +557,114 @@ public class AuthServiceTest {
         Assertions.assertEquals("Token manquant ou invalide", response.get("error"));
     }
 
+    // ─── Register — branches de validation manquantes ────────────────────────
+
+    @Test
+    void testRegisterMissingName() {
+        RegisterRequest request = new RegisterRequest();
+        request.setName(null);
+        request.setEmail("poun@gmail.com");
+        request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
+
+        Map<String, Object> response = authService.register(request);
+        Assertions.assertEquals("Nom obligatoire", response.get("error"));
+    }
+
+    @Test
+    void testRegisterBlankName() {
+        RegisterRequest request = new RegisterRequest();
+        request.setName("   ");
+        request.setEmail("poun@gmail.com");
+        request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
+
+        Map<String, Object> response = authService.register(request);
+        Assertions.assertEquals("Nom obligatoire", response.get("error"));
+    }
+
+    @Test
+    void testRegisterMissingEmail() {
+        RegisterRequest request = new RegisterRequest();
+        request.setName("Poun");
+        request.setEmail(null);
+        request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
+
+        Map<String, Object> response = authService.register(request);
+        Assertions.assertEquals("Email obligatoire", response.get("error"));
+    }
+
+    @Test
+    void testRegisterInvalidRole() {
+        RegisterRequest request = new RegisterRequest();
+        request.setName("Poun");
+        request.setEmail("poun@gmail.com");
+        request.setPassword("Azerty1234!@");
+        request.setRole("admin");
+
+        Map<String, Object> response = authService.register(request);
+        Assertions.assertEquals("Le role doit etre apprenant ou formateur", response.get("error"));
+    }
+
+    @Test
+    void testRegisterWeakPasswordWithRole() {
+        RegisterRequest request = new RegisterRequest();
+        request.setName("Poun");
+        request.setEmail("poun@gmail.com");
+        request.setPassword("faible");
+        request.setRole("apprenant");
+
+        Map<String, Object> response = authService.register(request);
+        Assertions.assertNotNull(response.get("error"));
+        Assertions.assertFalse(response.get("error").toString().isEmpty());
+    }
+
+    @Test
+    void testRegisterNullPasswordWithRole() {
+        RegisterRequest request = new RegisterRequest();
+        request.setName("Poun");
+        request.setEmail("poun@gmail.com");
+        request.setPassword(null);
+        request.setRole("apprenant");
+
+        Map<String, Object> response = authService.register(request);
+        Assertions.assertNotNull(response.get("error"));
+    }
+
+    // ─── VerifyEmail — email déjà confirmé ───────────────────────────────────
+
+    @Test
+    void testVerifyEmailAlreadyVerified() {
+        RegisterRequest request = new RegisterRequest();
+        request.setName("Poun");
+        request.setEmail("poun@gmail.com");
+        request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
+
+        Map<String, Object> registerResponse = authService.register(request);
+        String token = (String) registerResponse.get("emailVerificationToken");
+
+        // Première vérification → succès
+        authService.verifyEmail(token);
+
+        // Deuxième vérification → email déjà confirmé
+        Map<String, Object> secondResponse = authService.verifyEmail(null);
+        Assertions.assertEquals("Token de verification manquant", secondResponse.get("error"));
+
+        // Vérifier via un utilisateur déjà vérifié directement
+        User user = userRepository.findByEmail("poun@gmail.com").orElseThrow();
+        Assertions.assertTrue(user.isEmailVerified());
+
+        // Simuler un token d'un utilisateur déjà vérifié
+        user.setEmailVerificationToken("ancien-token");
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        Map<String, Object> alreadyVerified = authService.verifyEmail("ancien-token");
+        Assertions.assertTrue(alreadyVerified.get("message").toString().contains("confirmé"));
+    }
+
     // ─── AuthController Integration ───────────────────────────────────────────
 
     @SpringBootTest(classes = AuthApplication.class)

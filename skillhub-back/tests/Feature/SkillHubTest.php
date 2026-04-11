@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Formation;
+use App\Models\FormationVue;
 use App\Models\Inscription;
 use App\Models\Message;
 use App\Models\Module;
@@ -1189,5 +1190,177 @@ class SkillHubTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure(['message', 'photo_profil', 'user']);
+    }
+
+    // =========================================================================
+    // SECTION 9 — Relations des modèles, CorsMiddleware, vues en double
+    // =========================================================================
+
+    /** @test */
+    public function les_relations_du_modele_user_sont_accessibles(): void
+    {
+        ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
+        ['user' => $apprenant]                    = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+
+        // User::formations()
+        $this->assertCount(1, $formateur->formations);
+
+        // User::inscriptions()
+        Inscription::create([
+            'utilisateur_id' => $apprenant->id,
+            'formation_id'   => $formation->id,
+            'progression'    => 0,
+        ]);
+        $this->assertCount(1, $apprenant->inscriptions);
+
+        // User::messagesEnvoyes() et User::messagesRecus()
+        Message::create([
+            'expediteur_id'   => $formateur->id,
+            'destinataire_id' => $apprenant->id,
+            'contenu'         => 'Test relation',
+            'lu'              => false,
+        ]);
+        $this->assertCount(1, $formateur->messagesEnvoyes);
+        $this->assertCount(1, $apprenant->messagesRecus);
+    }
+
+    /** @test */
+    public function les_relations_du_modele_formation_sont_accessibles(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        $formation = $this->creerFormation($formateur);
+        $this->creerModule($formation);
+
+        // Formation::modules()
+        $this->assertCount(1, $formation->modules);
+
+        // Formation::vues()
+        FormationVue::create([
+            'formation_id'   => $formation->id,
+            'utilisateur_id' => null,
+            'ip'             => '127.0.0.1',
+        ]);
+        $formation->refresh();
+        $this->assertCount(1, $formation->vues);
+    }
+
+    /** @test */
+    public function les_relations_du_modele_inscription_sont_accessibles(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        ['user' => $apprenant] = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+
+        $inscription = Inscription::create([
+            'utilisateur_id' => $apprenant->id,
+            'formation_id'   => $formation->id,
+            'progression'    => 0,
+        ]);
+
+        // Inscription::utilisateur()
+        $this->assertEquals($apprenant->id, $inscription->utilisateur->id);
+
+        // Inscription::formation() (couvert via with() mais testé ici explicitement)
+        $this->assertEquals($formation->id, $inscription->formation->id);
+    }
+
+    /** @test */
+    public function les_relations_du_modele_module_sont_accessibles(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        ['user' => $apprenant] = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+        $module    = $this->creerModule($formation);
+
+        Inscription::create([
+            'utilisateur_id' => $apprenant->id,
+            'formation_id'   => $formation->id,
+            'progression'    => 0,
+        ]);
+
+        // Créer la relation pivot module_user via syncWithoutDetaching
+        $apprenant->modulesTermines()->syncWithoutDetaching([
+            $module->id => ['termine' => true],
+        ]);
+
+        // Module::utilisateurs()
+        $this->assertCount(1, $module->utilisateurs);
+
+        // Module::formation()
+        $this->assertEquals($formation->id, $module->formation->id);
+    }
+
+    /** @test */
+    public function les_relations_du_modele_formation_vue_sont_accessibles(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        ['user' => $apprenant] = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+
+        $vue = FormationVue::create([
+            'formation_id'   => $formation->id,
+            'utilisateur_id' => $apprenant->id,
+            'ip'             => '127.0.0.1',
+        ]);
+
+        // FormationVue::formation()
+        $this->assertEquals($formation->id, $vue->formation->id);
+
+        // FormationVue::utilisateur()
+        $this->assertEquals($apprenant->id, $vue->utilisateur->id);
+    }
+
+    /** @test */
+    public function une_requete_options_retourne_200(): void
+    {
+        $response = $this->call('OPTIONS', '/api/formations', [], [], [], [
+            'HTTP_ORIGIN' => 'http://localhost:5173',
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    /** @test */
+    public function une_requete_avec_origin_autorisee_inclut_header_cors(): void
+    {
+        $response = $this->withHeaders(['Origin' => 'http://localhost:5173'])
+            ->getJson('/api/formations');
+
+        $response->assertStatus(200);
+        $response->assertHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+    }
+
+    /** @test */
+    public function la_deuxieme_vue_anonyme_ne_compte_pas(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        $formation = $this->creerFormation($formateur);
+
+        // Première vue depuis la même IP (127.0.0.1 en test)
+        $this->getJson('/api/formations/' . $formation->id);
+
+        // Deuxième vue depuis la même IP — ne doit pas incrémenter
+        $this->getJson('/api/formations/' . $formation->id);
+
+        $formation->refresh();
+        $this->assertEquals(1, $formation->nombre_de_vues);
+    }
+
+    /** @test */
+    public function la_deuxieme_vue_authentifiee_ne_compte_pas(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        ['token' => $token]    = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+
+        // Première vue authentifiée
+        $this->getJson('/api/formations/' . $formation->id, $this->headers($token));
+
+        // Deuxième vue authentifiée — même utilisateur, ne doit pas incrémenter
+        $this->getJson('/api/formations/' . $formation->id, $this->headers($token));
+
+        $formation->refresh();
+        $this->assertEquals(1, $formation->nombre_de_vues);
     }
 }
