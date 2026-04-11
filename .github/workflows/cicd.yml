@@ -68,7 +68,7 @@ jobs:
 
       - name: Installer les dépendances Composer
         working-directory: skillhub-back
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-req=ext-mongodb
 
       # Générer APP_KEY et JWT_SECRET dans .env (requis par l'application)
       - name: Préparer le fichier .env de test
@@ -142,7 +142,29 @@ jobs:
       # verify = compile + test + JaCoCo report
       - name: Exécuter les tests Maven + rapport JaCoCo
         working-directory: springboot
-        run: ./mvnw verify --no-transfer-progress
+        run: ./mvnw verify --no-transfer-progress -fae
+
+      # Afficher les détails des tests échoués (même si le build échoue)
+      - name: Afficher les rapports de tests en échec
+        if: failure()
+        working-directory: springboot
+        run: |
+          echo "=== TESTS EN ECHEC ==="
+          for f in target/surefire-reports/TEST-*.xml; do
+            python3 -c "
+          import xml.etree.ElementTree as ET, sys
+          tree = ET.parse('$f')
+          root = tree.getroot()
+          failures = root.findall('.//failure') + root.findall('.//error')
+          if failures:
+              print('FICHIER:', '$f')
+              for t in root.findall('.//testcase'):
+                  for child in t:
+                      if child.tag in ('failure', 'error'):
+                          print(f'  ECHEC: {t.get(\"classname\")}.{t.get(\"name\")}')
+                          print(f'  {child.get(\"message\", \"\")[:200]}')
+          " 2>/dev/null || true
+          done
 
       # Vérifier que la couverture de lignes atteint 96 %
       - name: Vérifier la couverture ≥ 96 %
