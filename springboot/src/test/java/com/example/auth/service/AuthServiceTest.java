@@ -159,6 +159,7 @@ public class AuthServiceTest {
         request.setName("Autre");
         request.setEmail("poun@gmail.com");
         request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
 
         Map<String, Object> response = authService.register(request);
         Assertions.assertEquals("Email déjà utilisé", response.get("error"));

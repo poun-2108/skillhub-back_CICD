@@ -881,4 +881,313 @@ class SkillHubTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    // =========================================================================
+    // SECTION 8 — Couverture complémentaire (filtres, permissions, erreurs)
+    // =========================================================================
+
+    /** @test */
+    public function la_liste_formations_peut_etre_filtree_par_recherche(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        $this->creerFormation($formateur);
+
+        $response = $this->getJson('/api/formations?recherche=Formation');
+
+        $response->assertStatus(200);
+        $this->assertCount(1, $response->json());
+    }
+
+    /** @test */
+    public function la_liste_formations_peut_etre_filtree_par_categorie(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        $this->creerFormation($formateur);
+
+        $response = $this->getJson('/api/formations?categorie=developpement_web');
+
+        $response->assertStatus(200);
+        $this->assertCount(1, $response->json());
+    }
+
+    /** @test */
+    public function la_liste_formations_peut_etre_filtree_par_niveau(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        $this->creerFormation($formateur);
+
+        $response = $this->getJson('/api/formations?niveau=debutant');
+
+        $response->assertStatus(200);
+        $this->assertCount(1, $response->json());
+    }
+
+    /** @test */
+    public function on_peut_voir_une_formation_en_etant_connecte(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        ['token' => $token]    = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+
+        $response = $this->getJson('/api/formations/' . $formation->id, $this->headers($token));
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['titre' => 'Formation Test']);
+    }
+
+    /** @test */
+    public function la_mise_a_jour_dune_formation_inexistante_retourne_404(): void
+    {
+        ['token' => $token] = $this->creerUtilisateur('formateur');
+
+        $response = $this->putJson('/api/formations/9999', [
+            'titre'       => 'Test',
+            'description' => 'Test',
+            'categorie'   => 'developpement_web',
+            'niveau'      => 'debutant',
+        ], $this->headers($token));
+
+        $response->assertStatus(404);
+    }
+
+    /** @test */
+    public function la_suppression_dune_formation_inexistante_retourne_404(): void
+    {
+        ['token' => $token] = $this->creerUtilisateur('formateur');
+
+        $response = $this->deleteJson('/api/formations/9999', [], $this->headers($token));
+
+        $response->assertStatus(404);
+    }
+
+    /** @test */
+    public function un_formateur_ne_peut_pas_supprimer_la_formation_dun_autre(): void
+    {
+        ['user' => $formateur1] = $this->creerUtilisateur('formateur');
+        $formation = $this->creerFormation($formateur1);
+
+        $formateur2 = User::create([
+            'nom'      => 'Formateur 2',
+            'email'    => 'formateur2@test.com',
+            'password' => bcrypt('password123'),
+            'role'     => 'formateur',
+        ]);
+        $token2 = JWTAuth::fromUser($formateur2);
+
+        $response = $this->deleteJson('/api/formations/' . $formation->id, [], $this->headers($token2));
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function un_apprenant_ne_peut_pas_acceder_aux_formations_formateur(): void
+    {
+        ['token' => $token] = $this->creerUtilisateur('apprenant');
+
+        $response = $this->getJson('/api/formateur/mes-formations', $this->headers($token));
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function un_formateur_ne_peut_pas_ajouter_module_a_formation_dun_autre(): void
+    {
+        ['user' => $formateur1] = $this->creerUtilisateur('formateur');
+        $formation = $this->creerFormation($formateur1);
+
+        $formateur2 = User::create([
+            'nom'      => 'Formateur 2',
+            'email'    => 'formateur2@test.com',
+            'password' => bcrypt('password123'),
+            'role'     => 'formateur',
+        ]);
+        $token2 = JWTAuth::fromUser($formateur2);
+
+        $response = $this->postJson('/api/formations/' . $formation->id . '/modules', [
+            'titre'   => 'Module interdit',
+            'contenu' => 'Test',
+            'ordre'   => 1,
+        ], $this->headers($token2));
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function ajout_module_a_formation_inexistante_retourne_404(): void
+    {
+        ['token' => $token] = $this->creerUtilisateur('formateur');
+
+        $response = $this->postJson('/api/formations/9999/modules', [
+            'titre'   => 'Module',
+            'contenu' => 'Test',
+            'ordre'   => 1,
+        ], $this->headers($token));
+
+        $response->assertStatus(404);
+    }
+
+    /** @test */
+    public function un_apprenant_ne_peut_pas_modifier_un_module(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        ['token' => $token]    = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+        $module    = $this->creerModule($formation);
+
+        $response = $this->putJson('/api/modules/' . $module->id, [
+            'titre'   => 'Tentative',
+            'contenu' => 'Test',
+            'ordre'   => 1,
+        ], $this->headers($token));
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function un_apprenant_ne_peut_pas_supprimer_un_module(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        ['token' => $token]    = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+        $module    = $this->creerModule($formation);
+
+        $response = $this->deleteJson('/api/modules/' . $module->id, [], $this->headers($token));
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function un_formateur_ne_peut_pas_modifier_module_dun_autre(): void
+    {
+        ['user' => $formateur1] = $this->creerUtilisateur('formateur');
+        $formation = $this->creerFormation($formateur1);
+        $module    = $this->creerModule($formation);
+
+        $formateur2 = User::create([
+            'nom'      => 'Formateur 2',
+            'email'    => 'formateur2@test.com',
+            'password' => bcrypt('password123'),
+            'role'     => 'formateur',
+        ]);
+        $token2 = JWTAuth::fromUser($formateur2);
+
+        $response = $this->putJson('/api/modules/' . $module->id, [
+            'titre'   => 'Vol de module',
+            'contenu' => 'Test',
+            'ordre'   => 1,
+        ], $this->headers($token2));
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function un_formateur_ne_peut_pas_supprimer_module_dun_autre(): void
+    {
+        ['user' => $formateur1] = $this->creerUtilisateur('formateur');
+        $formation = $this->creerFormation($formateur1);
+        $module    = $this->creerModule($formation);
+
+        $formateur2 = User::create([
+            'nom'      => 'Formateur 2',
+            'email'    => 'formateur2@test.com',
+            'password' => bcrypt('password123'),
+            'role'     => 'formateur',
+        ]);
+        $token2 = JWTAuth::fromUser($formateur2);
+
+        $response = $this->deleteJson('/api/modules/' . $module->id, [], $this->headers($token2));
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function un_formateur_ne_peut_pas_voir_ses_modules_termines(): void
+    {
+        ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
+        $formation = $this->creerFormation($formateur);
+
+        $response = $this->getJson(
+            '/api/formations/' . $formation->id . '/modules-termines',
+            $this->headers($token)
+        );
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function la_desinscription_sans_inscription_retourne_404(): void
+    {
+        ['user' => $formateur] = $this->creerUtilisateur('formateur');
+        ['token' => $token]    = $this->creerUtilisateur('apprenant');
+        $formation = $this->creerFormation($formateur);
+
+        $response = $this->deleteJson(
+            '/api/formations/' . $formation->id . '/inscription',
+            [],
+            $this->headers($token)
+        );
+
+        $response->assertStatus(404);
+    }
+
+    /** @test */
+    public function un_formateur_ne_peut_pas_voir_ses_formations_inscrites(): void
+    {
+        ['token' => $token] = $this->creerUtilisateur('formateur');
+
+        $response = $this->getJson('/api/apprenant/formations', $this->headers($token));
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function un_second_message_ne_declenche_pas_demail(): void
+    {
+        ['user' => $expediteur, 'token' => $token] = $this->creerUtilisateur('formateur');
+        ['user' => $destinataire]                  = $this->creerUtilisateur('apprenant');
+
+        // Premier message (déclenche l'envoi de mail)
+        $this->postJson('/api/messages/envoyer', [
+            'destinataire_id' => $destinataire->id,
+            'contenu'         => 'Premier message',
+        ], $this->headers($token));
+
+        // Deuxième message — ne doit pas tenter d'envoyer d'email
+        $response = $this->postJson('/api/messages/envoyer', [
+            'destinataire_id' => $destinataire->id,
+            'contenu'         => 'Deuxième message',
+        ], $this->headers($token));
+
+        $response->assertStatus(201)
+            ->assertJsonFragment(['message' => 'Message envoyé']);
+    }
+
+    /** @test */
+    public function upload_photo_avec_token_sans_fichier_retourne_422(): void
+    {
+        ['token' => $token] = $this->creerUtilisateur('apprenant');
+
+        $response = $this->postJson('/api/profil/photo', [], $this->headers($token));
+
+        $response->assertStatus(422);
+    }
+
+    /** @test */
+    public function upload_photo_avec_image_valide_retourne_200(): void
+    {
+        ['token' => $token] = $this->creerUtilisateur('apprenant');
+
+        $dir = public_path('images/profils');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('photo.jpg', 200, 200);
+
+        $response = $this->withHeaders($this->headers($token))
+            ->post('/api/profil/photo', ['photo' => $file]);
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['message', 'photo_profil', 'user']);
+    }
 }
