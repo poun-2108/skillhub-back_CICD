@@ -68,6 +68,7 @@ public class AuthServiceTest {
         request.setName("Poun");
         request.setEmail("poun@gmail.com");
         request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
         authService.register(request);
 
         // Active l email directement en base pour les tests
@@ -101,6 +102,7 @@ public class AuthServiceTest {
         reg.setName("Test");
         reg.setEmail(email);
         reg.setPassword(password);
+        reg.setRole("apprenant");
         authService.register(reg);
 
         // Active l email directement en base pour les tests
@@ -125,6 +127,7 @@ public class AuthServiceTest {
         request.setName("Poun");
         request.setEmail("poun@gmail.com");
         request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
 
         Map<String, Object> response = authService.register(request);
 
@@ -140,6 +143,7 @@ public class AuthServiceTest {
         request.setName("Poun");
         request.setEmail("poun@gmail.com");
         request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
 
         Map<String, Object> response = authService.register(request);
 
@@ -190,6 +194,7 @@ public class AuthServiceTest {
         request.setName("Poun");
         request.setEmail("poun@gmail.com");
         request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
 
         Map<String, Object> registerResponse = authService.register(request);
         String token = (String) registerResponse.get("emailVerificationToken");
@@ -237,6 +242,7 @@ public class AuthServiceTest {
         request.setName("Poun");
         request.setEmail("poun@gmail.com");
         request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
         authService.register(request);
 
         ClientProofResponse proof = buildValidProof();

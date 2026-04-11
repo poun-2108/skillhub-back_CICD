@@ -82,6 +82,7 @@ public class AuthControllerTest {
         request.setName("Test");
         request.setEmail(email);
         request.setPassword("Azerty1234!@");
+        request.setRole("apprenant");
         return request;
     }
 

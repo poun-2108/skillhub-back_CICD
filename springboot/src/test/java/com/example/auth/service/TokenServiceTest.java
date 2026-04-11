@@ -64,9 +64,9 @@ class TokenServiceTest {
 
     @Test
     void retourneNullSiHeaderVideApresBearer() {
-        User result = tokenService.getUserFromToken("Bearer ");
         // Le token extrait sera vide, findByToken retourne empty
         when(userRepository.findByToken("")).thenReturn(Optional.empty());
+        User result = tokenService.getUserFromToken("Bearer ");
         Assertions.assertNull(result);
     }
 

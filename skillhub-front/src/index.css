@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* ============ VARIABLES ============ */
+:root {
+    --fond-page:      #0f1623;
+    --fond-carte:     #1a2236;
+    --texte-blanc:    #f0f4ff;
+    --texte-clair:    #c8d3e8;
+    --texte-doux:     #7a8aaa;
+    --bleu-vif:       #4f8ef7;
+    --violet:         #7c5cfc;
+    --bordure:        rgba(255, 255, 255, 0.07);
+    --bordure-hover:  rgba(79, 142, 247, 0.35);
+    --ombre-carte:    0 8px 40px rgba(0, 0, 0, 0.35);
+    --rayon:          14px;
+    --rayon-bouton:   50px;
+    --police-titre:   'Outfit', sans-serif;
+    --police-corps: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ============ RESET ============ */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Force dark sur TOUT */
+html,
+body,
+#root,
+#root > div {
+    background-color: #0f1623;
+    color: #f0f4ff;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+button {
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* Force dark sur tous les conteneurs de pages */
+.da-page,
+.df-page,
+.catalogue-page,
+.detail-page,
+.apprendre-page {
+    background-color: #0f1623 !important;
+    color: #f0f4ff !important;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Inputs dark globaux */
+input,
+select,
+textarea {
+    background-color: rgba(255, 255, 255, 0.04);
+    color: #f0f4ff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'DM Sans', sans-serif;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #7a8aaa;
+}
+
+select option {
+    background-color: #1a2236;
+    color: #f0f4ff;
+}

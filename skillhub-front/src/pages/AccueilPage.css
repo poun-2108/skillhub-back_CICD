@@ -1,0 +1,627 @@
+/* Police importee */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* Page entiere en dark */
+.accueil-page {
+    background-color: #0f1623;
+    color: #f0f4ff;
+    min-height: 100vh;
+}
+
+/* Titre or pour les sections */
+.titre-section {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    text-align: center;
+    color: #f0a500;
+    margin-bottom: 0.75rem;
+    letter-spacing: -1.5px;
+}
+
+.sous-titre-section {
+    text-align: center;
+    color: #7a8aaa;
+    font-size: 0.95rem;
+    margin-bottom: 3rem;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+/* Bouton principal bleu */
+.btn-principal {
+    background-color: #4f8ef7;
+    border: none;
+    color: #ffffff;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn-principal:hover {
+    background-color: #3b6fd4;
+    transform: translateY(-2px);
+}
+
+/* Bouton secondaire transparent */
+.btn-secondaire {
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #c8d3e8;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn-secondaire:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #f0f4ff;
+    transform: translateY(-2px);
+}
+
+/* ===================== HERO ===================== */
+.accueil-hero {
+    background-color: #0f1623;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 5rem 2rem 4rem;
+}
+
+.accueil-hero-texte {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 540px;
+}
+
+.accueil-hero-titre {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3.6rem;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -2px;
+    color: #f0f4ff;
+}
+
+.mot-bleu   { color: #4f8ef7; }
+.mot-violet { color: #a78bfa; }
+
+.accueil-hero-desc {
+    font-size: 1rem;
+    color: #7a8aaa;
+    line-height: 1.75;
+}
+
+.accueil-hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.accueil-hero-image {
+    flex: 1;
+    max-width: 520px;
+}
+
+.accueil-hero-image img {
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ===================== FONCTIONNEMENT ===================== */
+.accueil-fonctionnement {
+    background-color: #131c2e;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 5rem 2rem;
+}
+
+.accueil-cards-grille {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Carte avec photo de fond */
+.accueil-card-glass {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    height: 280px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.accueil-card-glass:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* Overlay sombre — pas trop opaque pour voir la photo */
+.accueil-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(8, 14, 28, 0.88) 0%,
+        rgba(8, 14, 28, 0.45) 50%,
+        rgba(8, 14, 28, 0.2) 100%
+    );
+    transition: background 0.25s ease;
+}
+
+.accueil-card-glass:hover .accueil-card-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(8, 14, 28, 0.92) 0%,
+        rgba(8, 14, 28, 0.55) 60%,
+        rgba(8, 14, 28, 0.25) 100%
+    );
+}
+
+/* Contenu positionne en bas */
+.accueil-card-contenu {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 1;
+}
+
+.accueil-card-contenu h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+}
+
+.accueil-card-contenu p {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Chip en bas de carte */
+.accueil-card-chip {
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.28rem 0.85rem;
+    border-radius: 50px;
+    width: fit-content;
+    backdrop-filter: blur(4px);
+    transition: background-color 0.2s;
+}
+
+.accueil-card-glass:hover .accueil-card-chip {
+    background-color: rgba(79, 142, 247, 0.3);
+    border-color: rgba(79, 142, 247, 0.5);
+}
+
+/* ===================== VALEURS ===================== */
+.accueil-valeurs {
+    background-color: #0f1623;
+    padding: 5rem 2rem;
+}
+
+.accueil-valeurs-grille {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Carte photo */
+.accueil-valeur-card {
+    position: relative;
+    height: 400px;
+    border-radius: 18px;
+    overflow: hidden;
+    cursor: pointer;
+    background-image: var(--bg);
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.accueil-valeur-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.accueil-valeur-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(8, 14, 26, 0.92) 0%, rgba(8, 14, 26, 0.35) 55%, transparent 100%);
+}
+
+.accueil-valeur-contenu {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.accueil-valeur-contenu h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.accueil-valeur-contenu p {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.55;
+}
+
+.btn-valeur {
+    margin-top: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    padding: 0.5rem 1.25rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    width: fit-content;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-valeur:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ===================== FORMATIONS ===================== */
+.accueil-formations {
+    background-color: #131c2e;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 5rem 2rem;
+}
+
+.accueil-formations-grille {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto 2.5rem;
+}
+
+.accueil-formation-card {
+    background-color: #1a2236;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    transition: transform 0.25s, border-color 0.25s;
+}
+
+.accueil-formation-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(79, 142, 247, 0.35);
+}
+
+.accueil-badge-niveau {
+    display: inline-block;
+    background-color: rgba(79, 142, 247, 0.12);
+    border: 1px solid rgba(79, 142, 247, 0.25);
+    color: #60a5fa;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.22rem 0.7rem;
+    border-radius: 50px;
+    width: fit-content;
+    text-transform: capitalize;
+}
+
+.accueil-formation-card h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f0f4ff;
+}
+
+.accueil-formation-formateur {
+    font-size: 0.85rem;
+    color: #7a8aaa;
+    flex: 1;
+}
+
+.accueil-voir-tout {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.accueil-chargement,
+.accueil-vide {
+    text-align: center;
+    color: #7a8aaa;
+    padding: 4rem 2rem;
+    font-size: 0.95rem;
+}
+
+/* ===================== PARTENAIRES ===================== */
+.accueil-partenaires {
+  background-color: #0d1b2a;
+  padding: 72px 0 64px 0;
+  overflow: hidden;
+  text-align: center;
+}
+
+.accueil-partenaires-desc {
+  color: #b0bec5;
+  font-size: 1rem;
+  margin: 0 0 52px 0;       /* ← espace entre sous-titre et carrousel */
+  line-height: 1.6;
+}
+/* Espacement titre / sous-titre corrigé */
+.accueil-partenaires .titre-section {
+  color: #f5a623;
+  font-size: 2.6rem;
+  font-weight: 900;
+  margin: 0 0 10px 0;       /* ← espace réduit sous le titre */
+}
+
+/* ===== Carrousel ===== */
+.carousel-wrapper {
+  overflow: hidden;
+  /* Fondu gauche/droite */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.carousel-wrapper::before,
+.carousel-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.carousel-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, #0f1623, transparent);
+}
+
+.carousel-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, #0f1623, transparent);
+}
+
+.carousel-track {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  width: max-content;
+  animation: defilement 28s linear infinite;
+}
+
+.carousel-track:hover {
+  animation-play-state: paused;   /* Pause au survol */
+}
+
+@keyframes defiler {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Carte logo */
+.carousel-card {
+  flex-shrink: 0;
+  border-radius: 12px;
+  height: 100px;
+  min-width: 160px;
+  overflow: hidden;             /* Cache ce qui dépasse */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.carousel-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(245, 166, 35, 0.2);
+}
+/* Image du logo et remplie la carte*/
+.carousel-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;            /* Remplit sans déformer */
+  object-position: center;
+  display: block;
+  filter: grayscale(15%);
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.carousel-card:hover .carousel-logo {
+  filter: grayscale(0%);
+  transform: scale(1.05);       /* Léger zoom au survol */
+}
+
+/* Animation défilement infini */
+@keyframes defilement {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }  /* -50% car tableau dupliqué */
+}
+
+/* ===================== TEMOIGNAGES ===================== */
+.accueil-temoignages {
+    background-color: #131c2e;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 5rem 2rem;
+}
+
+.accueil-temoignages-grille {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.accueil-temoignage-card {
+    background-color: #1a2236;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: transform 0.25s, border-color 0.25s;
+}
+
+.accueil-temoignage-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(79, 142, 247, 0.35);
+}
+
+.accueil-temoignage-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.accueil-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #4f8ef7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.accueil-temoignage-header h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #f0f4ff;
+}
+
+.accueil-temoignage-header span {
+    font-size: 0.78rem;
+    color: #7a8aaa;
+    display: block;
+    margin-top: 0.1rem;
+}
+
+.accueil-temoignage-card p {
+    font-size: 0.875rem;
+    color: #7a8aaa;
+    line-height: 1.65;
+    flex: 1;
+    font-style: italic;
+}
+
+.accueil-etoiles {
+    color: #f0a500;
+    font-size: 0.95rem;
+    letter-spacing: 3px;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 1024px) {
+    .accueil-cards-grille {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .accueil-hero {
+        flex-direction: column;
+        padding: 3rem 1.5rem;
+        text-align: center;
+    }
+
+    .accueil-hero-texte {
+        max-width: 100%;
+        align-items: center;
+    }
+
+    .accueil-hero-titre {
+        font-size: 2.2rem;
+    }
+
+    .titre-section {
+        font-size: 2rem;
+    }
+
+    .accueil-valeurs-grille,
+    .accueil-formations-grille,
+    .accueil-temoignages-grille {
+        grid-template-columns: 1fr;
+        max-width: 440px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .accueil-cards-grille {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .accueil-cards-grille {
+        grid-template-columns: 1fr;
+    }
+
+    .accueil-card-glass {
+        height: 220px;
+    }
+
+    .accueil-hero-titre {
+        font-size: 1.85rem;
+    }
+}

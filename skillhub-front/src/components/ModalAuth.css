@@ -1,0 +1,135 @@
+/* ============================================================
+   MODAL AUTH - style moderne
+   ============================================================ */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: var(--bg-overlay);
+    backdrop-filter: blur(12px);
+}
+
+.modal-boite {
+    width: 100%;
+    max-width: 460px;
+    padding: 2rem;
+    border-radius: 28px;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    animation: modal-entree 0.25s ease;
+}
+
+@keyframes modal-entree {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-fermer {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-soft);
+    transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.modal-fermer:hover {
+    transform: rotate(90deg);
+    border-color: var(--border-strong);
+    color: var(--text-main);
+}
+
+.modal-onglets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.modal-onglet {
+    min-height: 48px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-soft);
+    font-weight: 700;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.modal-onglet:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+}
+
+.modal-onglet-actif {
+    background: rgba(79, 70, 229, 0.16);
+    border-color: var(--border-strong);
+    color: #ffffff;
+}
+
+.modal-erreur {
+    margin-bottom: 1rem;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    color: #fecaca;
+}
+
+.modal-formulaire {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.modal-formulaire .bouton {
+    margin-top: 0.85rem;
+    width: 100%;
+}
+
+.modal-label {
+    color: var(--text-main);
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.modal-input,
+.modal-select {
+    min-height: 52px;
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-main);
+    padding: 0.95rem 1rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.modal-input::placeholder {
+    color: var(--text-muted);
+}
+
+.modal-input:focus,
+.modal-select:focus {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.14);
+    transform: translateY(-1px);
+}
