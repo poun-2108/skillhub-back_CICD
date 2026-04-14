@@ -47,7 +47,8 @@ services:
       - "8001:8001"
     environment:
       APP_ENV: local
-      APP_KEY: base64:GENEREZ_UNE_CLE_ICI
+      APP_KEY: base64:U7fU4f+NH4Rj5rIeEr0S4GIJ+eL/1NCO2gL6xk2XfEw=
+      XDEBUG_MODE: coverage
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306

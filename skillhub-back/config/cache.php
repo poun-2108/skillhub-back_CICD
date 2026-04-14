@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Str;
 
+if (! defined('CACHE_DEFAULT_LOCAL_HOST')) {
+    define('CACHE_DEFAULT_LOCAL_HOST', '127.0.0.1');
+}
+
 return [
 
     /*
@@ -65,7 +69,7 @@ return [
             ],
             'servers' => [
                 [
-                    'host' => env('MEMCACHED_HOST', '127.0.0.1'),
+                    'host' => env('MEMCACHED_HOST', CACHE_DEFAULT_LOCAL_HOST),
                     'port' => env('MEMCACHED_PORT', 11211),
                     'weight' => 100,
                 ],

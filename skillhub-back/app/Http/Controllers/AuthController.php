@@ -13,6 +13,9 @@ use Tymon\JWTAuth\Exceptions\JWTException;
  */
 class AuthController extends Controller
 {
+    private const USER_NOT_FOUND_MESSAGE = 'Utilisateur non trouvé';
+    private const TOKEN_INVALID_OR_ABSENT_MESSAGE = 'Token invalide ou absent';
+
     /**
      * Inscription utilisateur.
      */
@@ -88,7 +91,7 @@ class AuthController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -97,7 +100,7 @@ class AuthController extends Controller
             ]);
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -115,7 +118,7 @@ class AuthController extends Controller
             ]);
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -131,7 +134,7 @@ class AuthController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -158,7 +161,7 @@ class AuthController extends Controller
             ]);
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }

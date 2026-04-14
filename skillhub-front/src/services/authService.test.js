@@ -1,9 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const apiMock = {
-    post: vi.fn(),
-    get: vi.fn(),
-};
+const { apiMock } = vi.hoisted(() => ({
+    apiMock: {
+        post: vi.fn(),
+        get: vi.fn(),
+    },
+}));
 
 vi.mock("./axiosConfig", () => ({
     default: apiMock,
@@ -39,6 +41,16 @@ describe("authService", () => {
         expect(localStorage.getItem("token")).toBe("jwt-token");
     });
 
+    it("register n'ecrit rien en local sans token ni user", async () => {
+        apiMock.post.mockResolvedValue({ data: {} });
+
+        const result = await authService.register("Alice", "a@test.com", "pwd", "pwd", "apprenant");
+
+        expect(result.user).toBeNull();
+        expect(localStorage.getItem("token")).toBeNull();
+        expect(localStorage.getItem("utilisateur")).toBeNull();
+    });
+
     it("normalise avec fallback name lors du login", async () => {
         apiMock.post.mockResolvedValue({
             data: {
@@ -65,6 +77,14 @@ describe("authService", () => {
 
         expect(apiMock.get).toHaveBeenCalledWith("/profile");
         expect(result.user.nom).toBe("Charlie");
+    });
+
+    it("profile retourne user null si backend ne renvoie pas d'utilisateur", async () => {
+        apiMock.get.mockResolvedValue({ data: {} });
+
+        const result = await authService.profile();
+
+        expect(result.user).toBeNull();
     });
 
     it("supprime la session locale lors du logout", async () => {
@@ -98,6 +118,11 @@ describe("authService", () => {
 
         localStorage.setItem("utilisateur", "not-json");
         expect(authService.getUtilisateur()).toBeNull();
+    });
+
+    it("retourne l'utilisateur local si le JSON est valide", () => {
+        localStorage.setItem("utilisateur", JSON.stringify({ nom: "Eva" }));
+        expect(authService.getUtilisateur()).toEqual({ nom: "Eva" });
     });
 
     it("retourne token et etat de connexion", () => {

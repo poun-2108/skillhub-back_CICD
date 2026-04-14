@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace Tests\Feature;
 
@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Models\Module;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -17,9 +18,9 @@ use Tymon\JWTAuth\Facades\JWTAuth;
  *
  * Couvre :
  * - Authentification (register, login, profile, logout)
- * - Formations (CRUD formateur, contrôle rôle)
- * - Modules (CRUD formateur, contrôle rôle et propriété)
- * - Inscriptions (inscription, doublon, désinscription, mes formations)
+ * - Formations (CRUD formateur, contrÃ´le rÃ´le)
+ * - Modules (CRUD formateur, contrÃ´le rÃ´le et propriÃ©tÃ©)
+ * - Inscriptions (inscription, doublon, dÃ©sinscription, mes formations)
  * - Progression (terminer module, doublon, calcul pourcentage)
  * - Erreurs attendues (401, 403, 404, 409)
  */
@@ -27,12 +28,31 @@ class SkillHubTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const FORMATION_TEST_TITLE = 'Formation Test';
+    private const API_REGISTER = '/api/register';
+    private const API_FORMATIONS = '/api/formations';
+    private const API_FORMATIONS_PREFIX = '/api/formations/';
+    private const API_FORMATIONS_NOT_FOUND = '/api/formations/9999';
+    private const API_MODULES_PREFIX = '/api/modules/';
+    private const API_MODULES_NOT_FOUND = '/api/modules/9999';
+    private const PATH_MODULES = '/modules';
+    private const PATH_MODULES_TERMINES = '/modules-termines';
+    private const PATH_INSCRIPTION = '/inscription';
+    private const PATH_TERMINER = '/terminer';
+    private const API_MESSAGES_NON_LUS = '/api/messages/non-lus';
+    private const API_MESSAGES_ENVOYER = '/api/messages/envoyer';
+    private const API_MESSAGES_CONVERSATIONS = '/api/messages/conversations';
+    private const API_MESSAGES_INTERLOCUTEURS = '/api/messages/interlocuteurs';
+    private const SECOND_FORMATEUR_NAME = 'Formateur 2';
+    private const SECOND_FORMATEUR_EMAIL = 'formateur2@test.com';
+    private const ALLOWED_ORIGIN = 'http://localhost:5173';
+
     // -------------------------------------------------------------------------
-    // Helpers privés
+    // Helpers privÃ©s
     // -------------------------------------------------------------------------
 
     /**
-     * Crée un utilisateur et retourne son token JWT.
+     * CrÃ©e un utilisateur et retourne son token JWT.
      */
     private function creerUtilisateur(string $role): array
     {
@@ -49,12 +69,12 @@ class SkillHubTest extends TestCase
     }
 
     /**
-     * Crée une formation appartenant au formateur donné.
+     * CrÃ©e une formation appartenant au formateur donnÃ©.
      */
     private function creerFormation(User $formateur): Formation
     {
         return Formation::create([
-            'titre'          => 'Formation Test',
+            'titre'          => self::FORMATION_TEST_TITLE,
             'description'    => 'Description de test',
             'categorie'      => 'developpement_web',
             'niveau'         => 'debutant',
@@ -64,7 +84,7 @@ class SkillHubTest extends TestCase
     }
 
     /**
-     * Crée un module pour la formation donnée.
+     * CrÃ©e un module pour la formation donnÃ©e.
      */
     private function creerModule(Formation $formation, int $ordre = 1): Module
     {
@@ -77,7 +97,7 @@ class SkillHubTest extends TestCase
     }
 
     /**
-     * Construit l'en-tête Authorization avec le token JWT.
+     * Construit l'en-tÃªte Authorization avec le token JWT.
      */
     private function headers(string $token): array
     {
@@ -85,13 +105,13 @@ class SkillHubTest extends TestCase
     }
 
     // =========================================================================
-    // SECTION 1 — Authentification
+    // SECTION 1 â€” Authentification
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function un_utilisateur_peut_sinscrire(): void
     {
-        $response = $this->postJson('/api/register', [
+        $response = $this->postJson(self::API_REGISTER, [
             'nom'                   => 'Alice',
             'email'                 => 'alice@test.com',
             'password'              => 'password123',
@@ -103,12 +123,12 @@ class SkillHubTest extends TestCase
             ->assertJsonStructure(['message', 'token', 'user']);
     }
 
-    /** @test */
+    #[Test]
     public function linscription_echoue_si_email_deja_utilise(): void
     {
         $this->creerUtilisateur('apprenant');
 
-        $response = $this->postJson('/api/register', [
+        $response = $this->postJson(self::API_REGISTER, [
             'nom'                   => 'Copie',
             'email'                 => 'apprenant@test.com',
             'password'              => 'password123',
@@ -119,7 +139,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(422);
     }
 
-    /** @test */
+    #[Test]
     public function un_utilisateur_peut_se_connecter(): void
     {
         $this->creerUtilisateur('formateur');
@@ -133,7 +153,7 @@ class SkillHubTest extends TestCase
             ->assertJsonStructure(['message', 'token', 'user']);
     }
 
-    /** @test */
+    #[Test]
     public function la_connexion_echoue_avec_mauvais_mot_de_passe(): void
     {
         $this->creerUtilisateur('formateur');
@@ -146,7 +166,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function un_utilisateur_connecte_peut_voir_son_profil(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
@@ -157,7 +177,7 @@ class SkillHubTest extends TestCase
             ->assertJsonStructure(['user']);
     }
 
-    /** @test */
+    #[Test]
     public function le_profil_retourne_401_sans_token(): void
     {
         $response = $this->getJson('/api/profile');
@@ -165,7 +185,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function un_utilisateur_peut_se_deconnecter(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
@@ -173,37 +193,37 @@ class SkillHubTest extends TestCase
         $response = $this->postJson('/api/logout', [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Déconnexion réussie']);
+            ->assertJsonFragment(['message' => 'DÃ©connexion rÃ©ussie']);
     }
 
     // =========================================================================
-    // SECTION 2 — Formations
+    // SECTION 2 â€” Formations
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function un_formateur_peut_creer_une_formation(): void
     {
         ['token' => $token] = $this->creerUtilisateur('formateur');
 
-        $response = $this->postJson('/api/formations', [
-            'titre'       => 'Laravel avancé',
+        $response = $this->postJson(self::API_FORMATIONS, [
+            'titre'       => 'Laravel avancÃ©',
             'description' => 'Apprendre Laravel en profondeur',
             'categorie'   => 'developpement_web',
             'niveau'      => 'avance',
         ], $this->headers($token));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Formation créée avec succès']);
+            ->assertJsonFragment(['message' => 'Formation crÃ©Ã©e avec succÃ¨s']);
     }
 
-    /** @test */
+    #[Test]
     public function un_apprenant_ne_peut_pas_creer_de_formation(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->postJson('/api/formations', [
+        $response = $this->postJson(self::API_FORMATIONS, [
             'titre'       => 'Formation interdite',
-            'description' => 'Test rôle',
+            'description' => 'Test rÃ´le',
             'categorie'   => 'developpement_web',
             'niveau'      => 'debutant',
         ], $this->headers($token));
@@ -211,42 +231,42 @@ class SkillHubTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function la_liste_des_formations_est_publique(): void
     {
-        $response = $this->getJson('/api/formations');
+        $response = $this->getJson(self::API_FORMATIONS);
 
         $response->assertStatus(200)
             ->assertJsonStructure([]);
     }
 
-    /** @test */
+    #[Test]
     public function on_peut_voir_une_formation_existante(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
-        $response = $this->getJson('/api/formations/' . $formation->id);
+        $response = $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id);
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['titre' => 'Formation Test']);
+            ->assertJsonFragment(['titre' => self::FORMATION_TEST_TITLE]);
     }
 
-    /** @test */
+    #[Test]
     public function la_vue_dune_formation_inexistante_retourne_404(): void
     {
-        $response = $this->getJson('/api/formations/9999');
+        $response = $this->getJson(self::API_FORMATIONS_NOT_FOUND);
 
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_peut_modifier_sa_formation(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
-        $response = $this->putJson('/api/formations/' . $formation->id, [
+        $response = $this->putJson(self::API_FORMATIONS_PREFIX . $formation->id, [
             'titre'       => 'Nouveau titre',
             'description' => 'Nouvelle description',
             'categorie'   => 'developpement_web',
@@ -254,24 +274,24 @@ class SkillHubTest extends TestCase
         ], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Formation mise à jour avec succès']);
+            ->assertJsonFragment(['message' => 'Formation mise Ã  jour avec succÃ¨s']);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_modifier_la_formation_dun_autre(): void
     {
         ['user' => $formateur1] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur1);
 
         $formateur2 = User::create([
-            'nom'      => 'Formateur 2',
-            'email'    => 'formateur2@test.com',
+            'nom'      => self::SECOND_FORMATEUR_NAME,
+            'email'    => self::SECOND_FORMATEUR_EMAIL,
             'password' => bcrypt('password123'),
             'role'     => 'formateur',
         ]);
         $token2 = JWTAuth::fromUser($formateur2);
 
-        $response = $this->putJson('/api/formations/' . $formation->id, [
+        $response = $this->putJson(self::API_FORMATIONS_PREFIX . $formation->id, [
             'titre'       => 'Vol de formation',
             'description' => 'Tentative',
             'categorie'   => 'developpement_web',
@@ -281,39 +301,39 @@ class SkillHubTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_peut_supprimer_sa_formation(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
-        $response = $this->deleteJson('/api/formations/' . $formation->id, [], $this->headers($token));
+        $response = $this->deleteJson(self::API_FORMATIONS_PREFIX . $formation->id, [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Formation supprimée avec succès']);
+            ->assertJsonFragment(['message' => 'Formation supprimÃ©e avec succÃ¨s']);
     }
 
     // =========================================================================
-    // SECTION 3 — Modules
+    // SECTION 3 â€” Modules
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function un_formateur_peut_ajouter_un_module_a_sa_formation(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
-        $response = $this->postJson('/api/formations/' . $formation->id . '/modules', [
+        $response = $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_MODULES, [
             'titre'   => 'Module 1',
             'contenu' => 'Contenu du module 1',
             'ordre'   => 1,
         ], $this->headers($token));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Module créé avec succès']);
+            ->assertJsonFragment(['message' => 'Module crÃ©Ã© avec succÃ¨s']);
     }
 
-    /** @test */
+    #[Test]
     public function un_apprenant_ne_peut_pas_creer_un_module(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -321,7 +341,7 @@ class SkillHubTest extends TestCase
 
         ['token' => $tokenApprenant] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->postJson('/api/formations/' . $formation->id . '/modules', [
+        $response = $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_MODULES, [
             'titre'   => 'Module interdit',
             'contenu' => 'Test',
             'ordre'   => 1,
@@ -330,13 +350,13 @@ class SkillHubTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function la_creation_de_module_sans_token_retourne_401(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
-        $response = $this->postJson('/api/formations/' . $formation->id . '/modules', [
+        $response = $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_MODULES, [
             'titre'   => 'Module sans auth',
             'contenu' => 'Test',
             'ordre'   => 1,
@@ -345,7 +365,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function on_peut_lister_les_modules_dune_formation(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -353,48 +373,48 @@ class SkillHubTest extends TestCase
         $this->creerModule($formation, 1);
         $this->creerModule($formation, 2);
 
-        $response = $this->getJson('/api/formations/' . $formation->id . '/modules');
+        $response = $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_MODULES);
 
         $response->assertStatus(200)
             ->assertJsonCount(2);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_peut_modifier_un_module_de_sa_formation(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
         $module    = $this->creerModule($formation);
 
-        $response = $this->putJson('/api/modules/' . $module->id, [
-            'titre'   => 'Titre modifié',
-            'contenu' => 'Contenu modifié',
+        $response = $this->putJson(self::API_MODULES_PREFIX . $module->id, [
+            'titre'   => 'Titre modifiÃ©',
+            'contenu' => 'Contenu modifiÃ©',
             'ordre'   => 1,
         ], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Module mis à jour avec succès']);
+            ->assertJsonFragment(['message' => 'Module mis Ã  jour avec succÃ¨s']);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_peut_supprimer_un_module_de_sa_formation(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
         $module    = $this->creerModule($formation);
 
-        $response = $this->deleteJson('/api/modules/' . $module->id, [], $this->headers($token));
+        $response = $this->deleteJson(self::API_MODULES_PREFIX . $module->id, [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Module supprimé avec succès']);
+            ->assertJsonFragment(['message' => 'Module supprimÃ© avec succÃ¨s']);
     }
 
-    /** @test */
+    #[Test]
     public function la_modification_dun_module_inexistant_retourne_404(): void
     {
         ['token' => $token] = $this->creerUtilisateur('formateur');
 
-        $response = $this->putJson('/api/modules/9999', [
+        $response = $this->putJson(self::API_MODULES_NOT_FOUND, [
             'titre'   => 'Test',
             'contenu' => 'Test',
             'ordre'   => 1,
@@ -404,57 +424,57 @@ class SkillHubTest extends TestCase
     }
 
     // =========================================================================
-    // SECTION 4 — Inscriptions
+    // SECTION 4 â€” Inscriptions
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function un_apprenant_peut_sinscrire_a_une_formation(): void
     {
         ['user' => $formateur]       = $this->creerUtilisateur('formateur');
         ['token' => $tokenApprenant] = $this->creerUtilisateur('apprenant');
         $formation = $this->creerFormation($formateur);
 
-        $response = $this->postJson('/api/formations/' . $formation->id . '/inscription', [], $this->headers($tokenApprenant));
+        $response = $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_INSCRIPTION, [], $this->headers($tokenApprenant));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Inscription réussie']);
+            ->assertJsonFragment(['message' => 'Inscription rÃ©ussie']);
     }
 
-    /** @test */
+    #[Test]
     public function linscription_en_double_retourne_409(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
         ['user' => $apprenant, 'token' => $token] = $this->creerUtilisateur('apprenant');
         $formation = $this->creerFormation($formateur);
 
-        $this->postJson('/api/formations/' . $formation->id . '/inscription', [], $this->headers($token));
-        $response = $this->postJson('/api/formations/' . $formation->id . '/inscription', [], $this->headers($token));
+        $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_INSCRIPTION, [], $this->headers($token));
+        $response = $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_INSCRIPTION, [], $this->headers($token));
 
         $response->assertStatus(409);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_sinscrire_a_une_formation(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
-        $response = $this->postJson('/api/formations/' . $formation->id . '/inscription', [], $this->headers($token));
+        $response = $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_INSCRIPTION, [], $this->headers($token));
 
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function linscription_a_une_formation_inexistante_retourne_404(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->postJson('/api/formations/9999/inscription', [], $this->headers($token));
+        $response = $this->postJson(self::API_FORMATIONS_NOT_FOUND . self::PATH_INSCRIPTION, [], $this->headers($token));
 
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function un_apprenant_peut_se_desinscrire(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
@@ -467,13 +487,13 @@ class SkillHubTest extends TestCase
             'progression'    => 0,
         ]);
 
-        $response = $this->deleteJson('/api/formations/' . $formation->id . '/inscription', [], $this->headers($token));
+        $response = $this->deleteJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_INSCRIPTION, [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Désinscription réussie']);
+            ->assertJsonFragment(['message' => 'DÃ©sinscription rÃ©ussie']);
     }
 
-    /** @test */
+    #[Test]
     public function un_apprenant_voit_ses_formations_inscrites(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
@@ -493,10 +513,10 @@ class SkillHubTest extends TestCase
     }
 
     // =========================================================================
-    // SECTION 5 — Progression
+    // SECTION 5 â€” Progression
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function un_apprenant_peut_terminer_un_module(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
@@ -510,16 +530,16 @@ class SkillHubTest extends TestCase
             'progression'    => 0,
         ]);
 
-        $response = $this->postJson('/api/modules/' . $module->id . '/terminer', [], $this->headers($token));
+        $response = $this->postJson(self::API_MODULES_PREFIX . $module->id . self::PATH_TERMINER, [], $this->headers($token));
 
         $response->assertStatus(200)
             ->assertJsonFragment([
-                'message'     => 'Module terminé avec succès',
+                'message'     => 'Module terminÃ© avec succÃ¨s',
                 'progression' => 100,
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function la_progression_est_calculee_correctement_sur_plusieurs_modules(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
@@ -535,13 +555,13 @@ class SkillHubTest extends TestCase
             'progression'    => 0,
         ]);
 
-        $response = $this->postJson('/api/modules/' . $module1->id . '/terminer', [], $this->headers($token));
+        $response = $this->postJson(self::API_MODULES_PREFIX . $module1->id . self::PATH_TERMINER, [], $this->headers($token));
 
         $response->assertStatus(200)
             ->assertJsonFragment(['progression' => 50]);
     }
 
-    /** @test */
+    #[Test]
     public function terminer_un_module_deja_termine_retourne_un_message_sans_erreur(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
@@ -555,14 +575,14 @@ class SkillHubTest extends TestCase
             'progression'    => 0,
         ]);
 
-        $this->postJson('/api/modules/' . $module->id . '/terminer', [], $this->headers($token));
-        $response = $this->postJson('/api/modules/' . $module->id . '/terminer', [], $this->headers($token));
+        $this->postJson(self::API_MODULES_PREFIX . $module->id . self::PATH_TERMINER, [], $this->headers($token));
+        $response = $this->postJson(self::API_MODULES_PREFIX . $module->id . self::PATH_TERMINER, [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Ce module est déjà terminé']);
+            ->assertJsonFragment(['message' => 'Ce module est dÃ©jÃ  terminÃ©']);
     }
 
-    /** @test */
+    #[Test]
     public function terminer_un_module_sans_etre_inscrit_retourne_403(): void
     {
         ['user' => $formateur]       = $this->creerUtilisateur('formateur');
@@ -570,24 +590,24 @@ class SkillHubTest extends TestCase
         $formation = $this->creerFormation($formateur);
         $module    = $this->creerModule($formation);
 
-        $response = $this->postJson('/api/modules/' . $module->id . '/terminer', [], $this->headers($tokenApprenant));
+        $response = $this->postJson(self::API_MODULES_PREFIX . $module->id . self::PATH_TERMINER, [], $this->headers($tokenApprenant));
 
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_terminer_un_module(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
         $module    = $this->creerModule($formation);
 
-        $response = $this->postJson('/api/modules/' . $module->id . '/terminer', [], $this->headers($token));
+        $response = $this->postJson(self::API_MODULES_PREFIX . $module->id . self::PATH_TERMINER, [], $this->headers($token));
 
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function terminer_un_module_inexistant_retourne_404(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
@@ -600,16 +620,16 @@ class SkillHubTest extends TestCase
             'progression'    => 0,
         ]);
 
-        $response = $this->postJson('/api/modules/9999/terminer', [], $this->headers($token));
+        $response = $this->postJson(self::API_MODULES_NOT_FOUND . self::PATH_TERMINER, [], $this->headers($token));
 
         $response->assertStatus(404);
     }
 
     // =========================================================================
-    // SECTION 6 — Nouveaux endpoints (ajoutés lors des corrections)
+    // SECTION 6 â€” Nouveaux endpoints (ajoutÃ©s lors des corrections)
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function un_formateur_voit_uniquement_ses_formations(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
@@ -621,7 +641,7 @@ class SkillHubTest extends TestCase
             ->assertJsonCount(1);
     }
 
-    /** @test */
+    #[Test]
     public function un_apprenant_peut_voir_ses_modules_termines(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
@@ -636,19 +656,19 @@ class SkillHubTest extends TestCase
         ]);
 
         // Terminer le module
-        $this->postJson('/api/modules/' . $module->id . '/terminer', [], $this->headers($token));
+        $this->postJson(self::API_MODULES_PREFIX . $module->id . self::PATH_TERMINER, [], $this->headers($token));
 
-        // Vérifier via le nouvel endpoint
-        $response = $this->getJson('/api/formations/' . $formation->id . '/modules-termines', $this->headers($token));
+        // VÃ©rifier via le nouvel endpoint
+        $response = $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_MODULES_TERMINES, $this->headers($token));
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'modules_termines');
     }
 
-    /** @test */
+    #[Test]
     public function linscription_echoue_si_mots_de_passe_differents(): void
     {
-        $response = $this->postJson('/api/register', [
+        $response = $this->postJson(self::API_REGISTER, [
             'nom'                   => 'Bob',
             'email'                 => 'bob@test.com',
             'password'              => 'password123',
@@ -660,29 +680,29 @@ class SkillHubTest extends TestCase
     }
 
     // =========================================================================
-    // SECTION 7 — Messagerie
+    // SECTION 7 â€” Messagerie
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function messages_non_lus_retourne_zero_sans_messages(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->getJson('/api/messages/non-lus', $this->headers($token));
+        $response = $this->getJson(self::API_MESSAGES_NON_LUS, $this->headers($token));
 
         $response->assertStatus(200)
             ->assertJsonFragment(['non_lus' => 0]);
     }
 
-    /** @test */
+    #[Test]
     public function messages_non_lus_retourne_401_sans_token(): void
     {
-        $response = $this->getJson('/api/messages/non-lus');
+        $response = $this->getJson(self::API_MESSAGES_NON_LUS);
 
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function messages_non_lus_compte_correctement(): void
     {
         ['user' => $expediteur] = $this->creerUtilisateur('formateur');
@@ -695,46 +715,46 @@ class SkillHubTest extends TestCase
             'lu'              => false,
         ]);
 
-        $response = $this->getJson('/api/messages/non-lus', $this->headers($token));
+        $response = $this->getJson(self::API_MESSAGES_NON_LUS, $this->headers($token));
 
         $response->assertStatus(200)
             ->assertJsonFragment(['non_lus' => 1]);
     }
 
-    /** @test */
+    #[Test]
     public function envoyer_message_retourne_201(): void
     {
         ['user' => $expediteur, 'token' => $token] = $this->creerUtilisateur('formateur');
         ['user' => $destinataire] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->postJson('/api/messages/envoyer', [
+        $response = $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => $destinataire->id,
             'contenu'         => 'Bonjour !',
         ], $this->headers($token));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Message envoyé']);
+            ->assertJsonFragment(['message' => 'Message envoyÃ©']);
     }
 
-    /** @test */
+    #[Test]
     public function envoyer_message_a_soi_meme_retourne_422(): void
     {
         ['user' => $user, 'token' => $token] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->postJson('/api/messages/envoyer', [
+        $response = $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => $user->id,
-            'contenu'         => 'Message à moi-même',
+            'contenu'         => 'Message Ã  moi-mÃªme',
         ], $this->headers($token));
 
         $response->assertStatus(422);
     }
 
-    /** @test */
+    #[Test]
     public function envoyer_message_sans_token_retourne_401(): void
     {
         ['user' => $destinataire] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->postJson('/api/messages/envoyer', [
+        $response = $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => $destinataire->id,
             'contenu'         => 'Sans auth',
         ]);
@@ -742,12 +762,12 @@ class SkillHubTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function envoyer_message_destinataire_inexistant_retourne_422(): void
     {
         ['token' => $token] = $this->creerUtilisateur('formateur');
 
-        $response = $this->postJson('/api/messages/envoyer', [
+        $response = $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => 9999,
             'contenu'         => 'Destinataire inconnu',
         ], $this->headers($token));
@@ -755,26 +775,26 @@ class SkillHubTest extends TestCase
         $response->assertStatus(422);
     }
 
-    /** @test */
+    #[Test]
     public function conversations_retourne_liste_vide_sans_messages(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->getJson('/api/messages/conversations', $this->headers($token));
+        $response = $this->getJson(self::API_MESSAGES_CONVERSATIONS, $this->headers($token));
 
         $response->assertStatus(200)
             ->assertJsonFragment(['conversations' => []]);
     }
 
-    /** @test */
+    #[Test]
     public function conversations_retourne_401_sans_token(): void
     {
-        $response = $this->getJson('/api/messages/conversations');
+        $response = $this->getJson(self::API_MESSAGES_CONVERSATIONS);
 
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function conversations_retourne_liste_avec_messages(): void
     {
         ['user' => $expediteur, 'token' => $token] = $this->creerUtilisateur('formateur');
@@ -787,14 +807,14 @@ class SkillHubTest extends TestCase
             'lu'              => false,
         ]);
 
-        $response = $this->getJson('/api/messages/conversations', $this->headers($token));
+        $response = $this->getJson(self::API_MESSAGES_CONVERSATIONS, $this->headers($token));
 
         $response->assertStatus(200);
         $conversations = $response->json('conversations');
         $this->assertCount(1, $conversations);
     }
 
-    /** @test */
+    #[Test]
     public function messagerie_par_conversation_retourne_messages(): void
     {
         ['user' => $expediteur, 'token' => $token] = $this->creerUtilisateur('formateur');
@@ -817,7 +837,7 @@ class SkillHubTest extends TestCase
         $this->assertCount(1, $response->json('messages'));
     }
 
-    /** @test */
+    #[Test]
     public function messagerie_par_conversation_retourne_401_sans_token(): void
     {
         $response = $this->getJson('/api/messages/conversation/1');
@@ -825,7 +845,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function messagerie_marque_messages_recus_comme_lus(): void
     {
         ['user' => $expediteur] = $this->creerUtilisateur('formateur');
@@ -834,7 +854,7 @@ class SkillHubTest extends TestCase
         $message = Message::create([
             'expediteur_id'   => $expediteur->id,
             'destinataire_id' => $destinataire->id,
-            'contenu'         => 'À lire',
+            'contenu'         => 'Ã€ lire',
             'lu'              => false,
         ]);
 
@@ -847,13 +867,13 @@ class SkillHubTest extends TestCase
         $this->assertTrue(Message::find($message->id)->lu);
     }
 
-    /** @test */
+    #[Test]
     public function interlocuteurs_formateur_retourne_apprenants(): void
     {
         ['token' => $token] = $this->creerUtilisateur('formateur');
         $this->creerUtilisateur('apprenant');
 
-        $response = $this->getJson('/api/messages/interlocuteurs', $this->headers($token));
+        $response = $this->getJson(self::API_MESSAGES_INTERLOCUTEURS, $this->headers($token));
 
         $response->assertStatus(200);
         $interlocuteurs = $response->json('interlocuteurs');
@@ -861,13 +881,13 @@ class SkillHubTest extends TestCase
         $this->assertEquals('apprenant', $interlocuteurs[0]['role']);
     }
 
-    /** @test */
+    #[Test]
     public function interlocuteurs_apprenant_retourne_formateurs(): void
     {
         $this->creerUtilisateur('formateur');
         ['token' => $token] = $this->creerUtilisateur('apprenant');
 
-        $response = $this->getJson('/api/messages/interlocuteurs', $this->headers($token));
+        $response = $this->getJson(self::API_MESSAGES_INTERLOCUTEURS, $this->headers($token));
 
         $response->assertStatus(200);
         $interlocuteurs = $response->json('interlocuteurs');
@@ -875,19 +895,19 @@ class SkillHubTest extends TestCase
         $this->assertEquals('formateur', $interlocuteurs[0]['role']);
     }
 
-    /** @test */
+    #[Test]
     public function interlocuteurs_retourne_401_sans_token(): void
     {
-        $response = $this->getJson('/api/messages/interlocuteurs');
+        $response = $this->getJson(self::API_MESSAGES_INTERLOCUTEURS);
 
         $response->assertStatus(401);
     }
 
     // =========================================================================
-    // SECTION 8 — Couverture complémentaire (filtres, permissions, erreurs)
+    // SECTION 8 â€” Couverture complÃ©mentaire (filtres, permissions, erreurs)
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function la_liste_formations_peut_etre_filtree_par_recherche(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -899,7 +919,7 @@ class SkillHubTest extends TestCase
         $this->assertCount(1, $response->json());
     }
 
-    /** @test */
+    #[Test]
     public function la_liste_formations_peut_etre_filtree_par_categorie(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -911,7 +931,7 @@ class SkillHubTest extends TestCase
         $this->assertCount(1, $response->json());
     }
 
-    /** @test */
+    #[Test]
     public function la_liste_formations_peut_etre_filtree_par_niveau(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -923,25 +943,25 @@ class SkillHubTest extends TestCase
         $this->assertCount(1, $response->json());
     }
 
-    /** @test */
+    #[Test]
     public function on_peut_voir_une_formation_en_etant_connecte(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
         ['token' => $token]    = $this->creerUtilisateur('apprenant');
         $formation = $this->creerFormation($formateur);
 
-        $response = $this->getJson('/api/formations/' . $formation->id, $this->headers($token));
+        $response = $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id, $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['titre' => 'Formation Test']);
+            ->assertJsonFragment(['titre' => self::FORMATION_TEST_TITLE]);
     }
 
-    /** @test */
+    #[Test]
     public function la_mise_a_jour_dune_formation_inexistante_retourne_404(): void
     {
         ['token' => $token] = $this->creerUtilisateur('formateur');
 
-        $response = $this->putJson('/api/formations/9999', [
+        $response = $this->putJson(self::API_FORMATIONS_NOT_FOUND, [
             'titre'       => 'Test',
             'description' => 'Test',
             'categorie'   => 'developpement_web',
@@ -951,36 +971,36 @@ class SkillHubTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function la_suppression_dune_formation_inexistante_retourne_404(): void
     {
         ['token' => $token] = $this->creerUtilisateur('formateur');
 
-        $response = $this->deleteJson('/api/formations/9999', [], $this->headers($token));
+        $response = $this->deleteJson(self::API_FORMATIONS_NOT_FOUND, [], $this->headers($token));
 
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_supprimer_la_formation_dun_autre(): void
     {
         ['user' => $formateur1] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur1);
 
         $formateur2 = User::create([
-            'nom'      => 'Formateur 2',
-            'email'    => 'formateur2@test.com',
+            'nom'      => self::SECOND_FORMATEUR_NAME,
+            'email'    => self::SECOND_FORMATEUR_EMAIL,
             'password' => bcrypt('password123'),
             'role'     => 'formateur',
         ]);
         $token2 = JWTAuth::fromUser($formateur2);
 
-        $response = $this->deleteJson('/api/formations/' . $formation->id, [], $this->headers($token2));
+        $response = $this->deleteJson(self::API_FORMATIONS_PREFIX . $formation->id, [], $this->headers($token2));
 
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_apprenant_ne_peut_pas_acceder_aux_formations_formateur(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
@@ -990,21 +1010,21 @@ class SkillHubTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_ajouter_module_a_formation_dun_autre(): void
     {
         ['user' => $formateur1] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur1);
 
         $formateur2 = User::create([
-            'nom'      => 'Formateur 2',
-            'email'    => 'formateur2@test.com',
+            'nom'      => self::SECOND_FORMATEUR_NAME,
+            'email'    => self::SECOND_FORMATEUR_EMAIL,
             'password' => bcrypt('password123'),
             'role'     => 'formateur',
         ]);
         $token2 = JWTAuth::fromUser($formateur2);
 
-        $response = $this->postJson('/api/formations/' . $formation->id . '/modules', [
+        $response = $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_MODULES, [
             'titre'   => 'Module interdit',
             'contenu' => 'Test',
             'ordre'   => 1,
@@ -1013,12 +1033,12 @@ class SkillHubTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function ajout_module_a_formation_inexistante_retourne_404(): void
     {
         ['token' => $token] = $this->creerUtilisateur('formateur');
 
-        $response = $this->postJson('/api/formations/9999/modules', [
+        $response = $this->postJson(self::API_FORMATIONS_NOT_FOUND . self::PATH_MODULES, [
             'titre'   => 'Module',
             'contenu' => 'Test',
             'ordre'   => 1,
@@ -1027,7 +1047,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function un_apprenant_ne_peut_pas_modifier_un_module(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -1035,7 +1055,7 @@ class SkillHubTest extends TestCase
         $formation = $this->creerFormation($formateur);
         $module    = $this->creerModule($formation);
 
-        $response = $this->putJson('/api/modules/' . $module->id, [
+        $response = $this->putJson(self::API_MODULES_PREFIX . $module->id, [
             'titre'   => 'Tentative',
             'contenu' => 'Test',
             'ordre'   => 1,
@@ -1044,7 +1064,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_apprenant_ne_peut_pas_supprimer_un_module(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -1052,12 +1072,12 @@ class SkillHubTest extends TestCase
         $formation = $this->creerFormation($formateur);
         $module    = $this->creerModule($formation);
 
-        $response = $this->deleteJson('/api/modules/' . $module->id, [], $this->headers($token));
+        $response = $this->deleteJson(self::API_MODULES_PREFIX . $module->id, [], $this->headers($token));
 
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_modifier_module_dun_autre(): void
     {
         ['user' => $formateur1] = $this->creerUtilisateur('formateur');
@@ -1065,14 +1085,14 @@ class SkillHubTest extends TestCase
         $module    = $this->creerModule($formation);
 
         $formateur2 = User::create([
-            'nom'      => 'Formateur 2',
-            'email'    => 'formateur2@test.com',
+            'nom'      => self::SECOND_FORMATEUR_NAME,
+            'email'    => self::SECOND_FORMATEUR_EMAIL,
             'password' => bcrypt('password123'),
             'role'     => 'formateur',
         ]);
         $token2 = JWTAuth::fromUser($formateur2);
 
-        $response = $this->putJson('/api/modules/' . $module->id, [
+        $response = $this->putJson(self::API_MODULES_PREFIX . $module->id, [
             'titre'   => 'Vol de module',
             'contenu' => 'Test',
             'ordre'   => 1,
@@ -1081,7 +1101,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_supprimer_module_dun_autre(): void
     {
         ['user' => $formateur1] = $this->creerUtilisateur('formateur');
@@ -1089,33 +1109,33 @@ class SkillHubTest extends TestCase
         $module    = $this->creerModule($formation);
 
         $formateur2 = User::create([
-            'nom'      => 'Formateur 2',
-            'email'    => 'formateur2@test.com',
+            'nom'      => self::SECOND_FORMATEUR_NAME,
+            'email'    => self::SECOND_FORMATEUR_EMAIL,
             'password' => bcrypt('password123'),
             'role'     => 'formateur',
         ]);
         $token2 = JWTAuth::fromUser($formateur2);
 
-        $response = $this->deleteJson('/api/modules/' . $module->id, [], $this->headers($token2));
+        $response = $this->deleteJson(self::API_MODULES_PREFIX . $module->id, [], $this->headers($token2));
 
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_voir_ses_modules_termines(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
         $response = $this->getJson(
-            '/api/formations/' . $formation->id . '/modules-termines',
+            self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_MODULES_TERMINES,
             $this->headers($token)
         );
 
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function la_desinscription_sans_inscription_retourne_404(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -1123,7 +1143,7 @@ class SkillHubTest extends TestCase
         $formation = $this->creerFormation($formateur);
 
         $response = $this->deleteJson(
-            '/api/formations/' . $formation->id . '/inscription',
+            self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_INSCRIPTION,
             [],
             $this->headers($token)
         );
@@ -1131,7 +1151,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function un_formateur_ne_peut_pas_voir_ses_formations_inscrites(): void
     {
         ['token' => $token] = $this->creerUtilisateur('formateur');
@@ -1141,29 +1161,29 @@ class SkillHubTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function un_second_message_ne_declenche_pas_demail(): void
     {
         ['user' => $expediteur, 'token' => $token] = $this->creerUtilisateur('formateur');
         ['user' => $destinataire]                  = $this->creerUtilisateur('apprenant');
 
-        // Premier message (déclenche l'envoi de mail)
-        $this->postJson('/api/messages/envoyer', [
+        // Premier message (dÃ©clenche l'envoi de mail)
+        $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => $destinataire->id,
             'contenu'         => 'Premier message',
         ], $this->headers($token));
 
-        // Deuxième message — ne doit pas tenter d'envoyer d'email
-        $response = $this->postJson('/api/messages/envoyer', [
+        // DeuxiÃ¨me message â€” ne doit pas tenter d'envoyer d'email
+        $response = $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => $destinataire->id,
-            'contenu'         => 'Deuxième message',
+            'contenu'         => 'DeuxiÃ¨me message',
         ], $this->headers($token));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Message envoyé']);
+            ->assertJsonFragment(['message' => 'Message envoyÃ©']);
     }
 
-    /** @test */
+    #[Test]
     public function upload_photo_avec_token_sans_fichier_retourne_422(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
@@ -1173,7 +1193,7 @@ class SkillHubTest extends TestCase
         $response->assertStatus(422);
     }
 
-    /** @test */
+    #[Test]
     public function upload_photo_avec_image_valide_retourne_200(): void
     {
         ['token' => $token] = $this->creerUtilisateur('apprenant');
@@ -1183,7 +1203,7 @@ class SkillHubTest extends TestCase
             mkdir($dir, 0755, true);
         }
 
-        $file = \Illuminate\Http\UploadedFile::fake()->image('photo.jpg', 200, 200);
+        $file = \Illuminate\Http\UploadedFile::fake()->create('photo.jpg', 120, 'image/jpeg');
 
         $response = $this->withHeaders($this->headers($token))
             ->post('/api/profil/photo', ['photo' => $file]);
@@ -1193,10 +1213,10 @@ class SkillHubTest extends TestCase
     }
 
     // =========================================================================
-    // SECTION 9 — Relations des modèles, CorsMiddleware, vues en double
+    // SECTION 9 â€” Relations des modÃ¨les, CorsMiddleware, vues en double
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function les_relations_du_modele_user_sont_accessibles(): void
     {
         ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
@@ -1225,7 +1245,7 @@ class SkillHubTest extends TestCase
         $this->assertCount(1, $apprenant->messagesRecus);
     }
 
-    /** @test */
+    #[Test]
     public function les_relations_du_modele_formation_sont_accessibles(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -1245,7 +1265,7 @@ class SkillHubTest extends TestCase
         $this->assertCount(1, $formation->vues);
     }
 
-    /** @test */
+    #[Test]
     public function les_relations_du_modele_inscription_sont_accessibles(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -1261,11 +1281,11 @@ class SkillHubTest extends TestCase
         // Inscription::utilisateur()
         $this->assertEquals($apprenant->id, $inscription->utilisateur->id);
 
-        // Inscription::formation() (couvert via with() mais testé ici explicitement)
+        // Inscription::formation() (couvert via with() mais testÃ© ici explicitement)
         $this->assertEquals($formation->id, $inscription->formation->id);
     }
 
-    /** @test */
+    #[Test]
     public function les_relations_du_modele_module_sont_accessibles(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -1279,7 +1299,7 @@ class SkillHubTest extends TestCase
             'progression'    => 0,
         ]);
 
-        // Créer la relation pivot module_user via syncWithoutDetaching
+        // CrÃ©er la relation pivot module_user via syncWithoutDetaching
         $apprenant->modulesTermines()->syncWithoutDetaching([
             $module->id => ['termine' => true],
         ]);
@@ -1291,7 +1311,7 @@ class SkillHubTest extends TestCase
         $this->assertEquals($formation->id, $module->formation->id);
     }
 
-    /** @test */
+    #[Test]
     public function les_relations_du_modele_formation_vue_sont_accessibles(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
@@ -1311,56 +1331,57 @@ class SkillHubTest extends TestCase
         $this->assertEquals($apprenant->id, $vue->utilisateur->id);
     }
 
-    /** @test */
+    #[Test]
     public function une_requete_options_retourne_200(): void
     {
-        $response = $this->call('OPTIONS', '/api/formations', [], [], [], [
-            'HTTP_ORIGIN' => 'http://localhost:5173',
+        $response = $this->call('OPTIONS', self::API_FORMATIONS, [], [], [], [
+            'HTTP_ORIGIN' => self::ALLOWED_ORIGIN,
         ]);
 
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function une_requete_avec_origin_autorisee_inclut_header_cors(): void
     {
-        $response = $this->withHeaders(['Origin' => 'http://localhost:5173'])
-            ->getJson('/api/formations');
+        $response = $this->withHeaders(['Origin' => self::ALLOWED_ORIGIN])
+            ->getJson(self::API_FORMATIONS);
 
         $response->assertStatus(200);
-        $response->assertHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+        $response->assertHeader('Access-Control-Allow-Origin', self::ALLOWED_ORIGIN);
     }
 
-    /** @test */
+    #[Test]
     public function la_deuxieme_vue_anonyme_ne_compte_pas(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
-        // Première vue depuis la même IP (127.0.0.1 en test)
-        $this->getJson('/api/formations/' . $formation->id);
+        // PremiÃ¨re vue depuis la mÃªme IP (127.0.0.1 en test)
+        $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id);
 
-        // Deuxième vue depuis la même IP — ne doit pas incrémenter
-        $this->getJson('/api/formations/' . $formation->id);
+        // DeuxiÃ¨me vue depuis la mÃªme IP â€” ne doit pas incrÃ©menter
+        $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id);
 
         $formation->refresh();
         $this->assertEquals(1, $formation->nombre_de_vues);
     }
 
-    /** @test */
+    #[Test]
     public function la_deuxieme_vue_authentifiee_ne_compte_pas(): void
     {
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
         ['token' => $token]    = $this->creerUtilisateur('apprenant');
         $formation = $this->creerFormation($formateur);
 
-        // Première vue authentifiée
-        $this->getJson('/api/formations/' . $formation->id, $this->headers($token));
+        // PremiÃ¨re vue authentifiÃ©e
+        $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id, $this->headers($token));
 
-        // Deuxième vue authentifiée — même utilisateur, ne doit pas incrémenter
-        $this->getJson('/api/formations/' . $formation->id, $this->headers($token));
+        // DeuxiÃ¨me vue authentifiÃ©e â€” mÃªme utilisateur, ne doit pas incrÃ©menter
+        $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id, $this->headers($token));
 
         $formation->refresh();
         $this->assertEquals(1, $formation->nombre_de_vues);
     }
 }
+

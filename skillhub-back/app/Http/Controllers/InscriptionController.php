@@ -14,6 +14,10 @@ use Tymon\JWTAuth\Exceptions\JWTException;
  */
 class InscriptionController extends Controller
 {
+    private const USER_NOT_FOUND_MESSAGE = 'Utilisateur non trouvé';
+    private const TOKEN_INVALID_OR_ABSENT_MESSAGE = 'Token invalide ou absent';
+    private const FORMATION_NOT_FOUND_MESSAGE = 'Formation introuvable';
+
     /**
      * Inscrire un apprenant à une formation.
      * Route : POST /formations/{id}/inscription
@@ -25,7 +29,7 @@ class InscriptionController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -39,7 +43,7 @@ class InscriptionController extends Controller
 
             if (! $formation) {
                 return response()->json([
-                    'message' => 'Formation introuvable'
+                    'message' => self::FORMATION_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -72,7 +76,7 @@ class InscriptionController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -88,7 +92,7 @@ class InscriptionController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -116,7 +120,7 @@ class InscriptionController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -132,7 +136,7 @@ class InscriptionController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -153,7 +157,7 @@ class InscriptionController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }

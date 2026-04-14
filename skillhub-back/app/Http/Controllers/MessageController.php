@@ -16,13 +16,18 @@ use Tymon\JWTAuth\Exceptions\JWTException;
  */
 class MessageController extends Controller
 {
+    private const NON_AUTORISE_MESSAGE = 'Non autorisé';
+    private const MESSAGE_ENVOYE_MESSAGE = 'Message envoyé';
+
     /**
      * Récupère le nombre de messages non lus de l'utilisateur connecté.
      */
     public function nonLus(): JsonResponse
     {
         $user = $this->utilisateurConnecte();
-        if (! $user) return $this->reponseNonAutorise();
+        if (! $user) {
+            return $this->reponseNonAutorise();
+        }
 
         $count = Message::where('destinataire_id', $user->id)
                         ->where('lu', false)
@@ -38,7 +43,9 @@ class MessageController extends Controller
     public function conversations(): JsonResponse
     {
         $user = $this->utilisateurConnecte();
-        if (! $user) return $this->reponseNonAutorise();
+        if (! $user) {
+            return $this->reponseNonAutorise();
+        }
 
         // Récupère tous les messages impliquant l'utilisateur
         $messages = Message::where('expediteur_id', $user->id)
@@ -84,7 +91,9 @@ class MessageController extends Controller
     public function messagerie(int $interlocuteurId): JsonResponse
     {
         $user = $this->utilisateurConnecte();
-        if (! $user) return $this->reponseNonAutorise();
+        if (! $user) {
+            return $this->reponseNonAutorise();
+        }
 
         // Récupère les messages entre les deux utilisateurs
         $messages = Message::where(function ($q) use ($user, $interlocuteurId) {
@@ -115,7 +124,9 @@ class MessageController extends Controller
     public function envoyer(Request $request): JsonResponse
     {
         $user = $this->utilisateurConnecte();
-        if (! $user) return $this->reponseNonAutorise();
+        if (! $user) {
+            return $this->reponseNonAutorise();
+        }
 
         $request->validate([
             'destinataire_id' => 'required|integer|exists:users,id',
@@ -165,7 +176,7 @@ class MessageController extends Controller
         }
 
         return response()->json([
-            'message'  => 'Message envoyé',
+            'message'  => self::MESSAGE_ENVOYE_MESSAGE,
             'data'     => $message,
         ], 201);
     }
@@ -179,7 +190,9 @@ class MessageController extends Controller
     public function interlocuteurs(): JsonResponse
     {
         $user = $this->utilisateurConnecte();
-        if (! $user) return $this->reponseNonAutorise();
+        if (! $user) {
+            return $this->reponseNonAutorise();
+        }
 
         if ($user->role === 'formateur') {
             $utilisateurs = User::where('role', 'apprenant')
@@ -215,6 +228,6 @@ class MessageController extends Controller
      */
     private function reponseNonAutorise(): JsonResponse
     {
-        return response()->json(['message' => 'Non autorisé'], 401);
+        return response()->json(['message' => self::NON_AUTORISE_MESSAGE], 401);
     }
 }

@@ -15,6 +15,10 @@ use Tymon\JWTAuth\Exceptions\JWTException;
  */
 class ModuleController extends Controller
 {
+    private const USER_NOT_FOUND_MESSAGE = 'Utilisateur non trouvé';
+    private const TOKEN_INVALID_OR_ABSENT_MESSAGE = 'Token invalide ou absent';
+    private const MODULE_NOT_FOUND_MESSAGE = 'Module introuvable';
+
     /**
      * Lister les modules d'une formation.
      * Route : GET /formations/{id}/modules
@@ -39,7 +43,7 @@ class ModuleController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -53,7 +57,7 @@ class ModuleController extends Controller
 
             if (! $formation) {
                 return response()->json([
-                    'message' => 'Formation introuvable'
+                    'message' => self::MODULE_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -83,7 +87,7 @@ class ModuleController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -99,7 +103,7 @@ class ModuleController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -113,7 +117,7 @@ class ModuleController extends Controller
 
             if (! $module) {
                 return response()->json([
-                    'message' => 'Module introuvable'
+                    'message' => self::MODULE_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -144,7 +148,7 @@ class ModuleController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -160,7 +164,7 @@ class ModuleController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -174,7 +178,7 @@ class ModuleController extends Controller
 
             if (! $module) {
                 return response()->json([
-                    'message' => 'Module introuvable'
+                    'message' => self::MODULE_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -194,7 +198,7 @@ class ModuleController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -210,7 +214,7 @@ class ModuleController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -230,7 +234,7 @@ class ModuleController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -246,7 +250,7 @@ class ModuleController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -260,7 +264,7 @@ class ModuleController extends Controller
 
             if (! $module) {
                 return response()->json([
-                    'message' => 'Module introuvable'
+                    'message' => self::MODULE_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -312,7 +316,7 @@ class ModuleController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }

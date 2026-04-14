@@ -15,6 +15,10 @@ use Tymon\JWTAuth\Exceptions\JWTException;
  */
 class FormationController extends Controller
 {
+    private const USER_NOT_FOUND_MESSAGE = 'Utilisateur non trouvé';
+    private const TOKEN_INVALID_OR_ABSENT_MESSAGE = 'Token invalide ou absent';
+    private const FORMATION_NOT_FOUND_MESSAGE = 'Formation introuvable';
+
     /**
      * Liste des formations du formateur connecté (endpoint dédié).
      * Route : GET /formateur/mes-formations
@@ -25,7 +29,7 @@ class FormationController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
 
             if (! $user) {
-                return response()->json(['message' => 'Utilisateur non trouvé'], 404);
+                return response()->json(['message' => self::USER_NOT_FOUND_MESSAGE], 404);
             }
 
             if ($user->role !== 'formateur') {
@@ -40,7 +44,7 @@ class FormationController extends Controller
             return response()->json($formations);
 
         } catch (JWTException $e) {
-            return response()->json(['message' => 'Token invalide ou absent'], 401);
+            return response()->json(['message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE], 401);
         }
     }
 
@@ -85,7 +89,7 @@ class FormationController extends Controller
 
         if (! $formation) {
             return response()->json([
-                'message' => 'Formation introuvable'
+                'message' => self::FORMATION_NOT_FOUND_MESSAGE
             ], 404);
         }
 
@@ -163,7 +167,7 @@ class FormationController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -206,7 +210,7 @@ class FormationController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -222,7 +226,7 @@ class FormationController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -230,7 +234,7 @@ class FormationController extends Controller
 
             if (! $formation) {
                 return response()->json([
-                    'message' => 'Formation introuvable'
+                    'message' => self::FORMATION_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -273,7 +277,7 @@ class FormationController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
@@ -289,7 +293,7 @@ class FormationController extends Controller
 
             if (! $user) {
                 return response()->json([
-                    'message' => 'Utilisateur non trouvé'
+                    'message' => self::USER_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -297,7 +301,7 @@ class FormationController extends Controller
 
             if (! $formation) {
                 return response()->json([
-                    'message' => 'Formation introuvable'
+                    'message' => self::FORMATION_NOT_FOUND_MESSAGE
                 ], 404);
             }
 
@@ -321,7 +325,7 @@ class FormationController extends Controller
 
         } catch (JWTException $e) {
             return response()->json([
-                'message' => 'Token invalide ou absent'
+                'message' => self::TOKEN_INVALID_OR_ABSENT_MESSAGE
             ], 401);
         }
     }
