@@ -6,12 +6,13 @@
 # Jobs :
 #   1. test-laravel      → PHPUnit + couverture ≥ 96 %
 #   2. test-springboot   → Maven/JaCoCo + couverture ≥ 96 %
-#   3. sonarcloud        → Analyse qualité + Quality Gate
+#   3. sonar             → Analyse qualité + Quality Gate (SonarQube/SonarCloud)
 #   4. docker-build-push → Build & push images vers AWS ECR  (main only)
 #   5. deploy            → Mise à jour des services AWS ECS   (main only)
 #
 # Secrets requis dans GitHub → Settings → Secrets :
-#   SONAR_TOKEN              Token SonarCloud
+#   SONAR_TOKEN              Token Sonar (Qube/Cloud)
+#   SONAR_HOST_URL           URL SonarQube (optionnel). Si absent: https://sonarcloud.io
 #   AWS_ACCESS_KEY_ID        Clé AWS
 #   AWS_SECRET_ACCESS_KEY    Clé secrète AWS
 #   AWS_REGION               Région AWS (ex : eu-west-3)
@@ -26,9 +27,8 @@ name: CI/CD — SkillHub
 
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 # Annule les runs précédents sur la même branche si un nouveau push arrive
 concurrency:
@@ -81,6 +81,11 @@ jobs:
       # Lancer les tests et générer le rapport Clover
       - name: Exécuter les tests PHPUnit avec couverture
         working-directory: skillhub-back
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          XDEBUG_MODE: coverage
         run: php artisan test --coverage-clover coverage.xml
 
       # Vérifier que la couverture atteint 96 %
@@ -104,6 +109,7 @@ jobs:
 
       # Exposer le rapport pour SonarCloud
       - name: Archiver le rapport de couverture Laravel
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: laravel-coverage
@@ -209,18 +215,31 @@ jobs:
           retention-days: 1
 
   # ────────────────────────────────────────────────────────────────────────────
-  # JOB 3 — Analyse SonarCloud + Quality Gate
+  # JOB 3 — Analyse Sonar (SonarQube/SonarCloud) + Quality Gate
   # ────────────────────────────────────────────────────────────────────────────
-  sonarcloud:
-    name: "SonarCloud — Qualité & Quality Gate"
+  sonar:
+    name: "Sonar — Qualité & Quality Gate"
     needs: [test-laravel, test-springboot]
+    if: ${{ secrets.SONAR_TOKEN != '' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout (historique complet pour SonarCloud)
+      - name: Checkout (historique complet pour Sonar)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Définir SONAR_HOST_URL (fallback SonarCloud)
+        env:
+          SONAR_HOST_URL_SECRET: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          if [ -n "$SONAR_HOST_URL_SECRET" ]; then
+            echo "SONAR_HOST_URL=$SONAR_HOST_URL_SECRET" >> "$GITHUB_ENV"
+            echo "Utilisation de SONAR_HOST_URL depuis les secrets."
+          else
+            echo "SONAR_HOST_URL=https://sonarcloud.io" >> "$GITHUB_ENV"
+            echo "SONAR_HOST_URL absent: fallback vers SonarCloud."
+          fi
 
       # Récupérer les rapports de couverture générés par les jobs précédents
       - name: Récupérer la couverture Laravel
@@ -235,24 +254,24 @@ jobs:
           name: springboot-coverage
           path: springboot/target/site/jacoco/
 
-      # ── Analyse SonarCloud — Laravel ────────────────────────────────────────
-      - name: Setup PHP 8.2 (pour sonar-scanner PHP)
+      # ── Analyse Sonar — Laravel ─────────────────────────────────────────────
+      - name: Setup PHP 8.2 (pour scanner PHP)
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
           extensions: mongodb, zip
 
-      - name: Analyse SonarCloud — Laravel
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: Analyse Sonar — Laravel
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
         with:
           projectBaseDir: skillhub-back
           args: >
             -Dsonar.qualitygate.wait=true
 
-      # ── Analyse SonarCloud — Spring Boot ────────────────────────────────────
+      # ── Analyse Sonar — Spring Boot ─────────────────────────────────────────
       - name: Setup Java 17 (pour sonar Maven)
         uses: actions/setup-java@v4
         with:
@@ -270,13 +289,13 @@ jobs:
         working-directory: springboot
         run: chmod +x mvnw
 
-      - name: Analyse SonarCloud — Spring Boot
+      - name: Analyse Sonar — Spring Boot
         working-directory: springboot
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           ./mvnw sonar:sonar \
+            -Dsonar.host.url="${{ env.SONAR_HOST_URL }}" \
             -Dsonar.branch.name="${{ github.head_ref || github.ref_name }}" \
             -Dsonar.qualitygate.wait=true \
             --no-transfer-progress
@@ -287,7 +306,7 @@ jobs:
   # ────────────────────────────────────────────────────────────────────────────
   docker-build-push:
     name: "Build & Push → AWS ECR"
-    needs: [sonarcloud]
+    needs: [sonar]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
