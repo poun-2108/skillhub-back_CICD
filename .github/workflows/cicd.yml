@@ -16,11 +16,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # ✅ déclaré au niveau job
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     defaults:
       run:
-        working-directory: springboot           # ✅ tous les steps pointent vers springboot/
+        working-directory: springboot
 
     steps:
       - name: Checkout
@@ -42,7 +42,7 @@ jobs:
         run: ./mvnw clean verify
 
       - name: Analyse SonarCloud
-        if: env.SONAR_TOKEN != ''               # ✅ env autorisé dans if:
+        if: env.SONAR_TOKEN != ''
         run: ./mvnw sonar:sonar -Dsonar.token=$SONAR_TOKEN
 
   # ─────────────────────────────────────────
@@ -60,11 +60,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install PHP
+      - name: Install PHP + ext-mongodb 2.2
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
-          extensions: mbstring, pdo, pdo_mysql, xml, zip
+          extensions: mbstring, pdo, pdo_mysql, xml, zip, mongodb-2.2.0   # ✅ fix version
           coverage: xdebug
 
       - name: Install dépendances Composer
@@ -113,7 +113,7 @@ jobs:
   docker:
     name: Docker — Build & Push
     runs-on: ubuntu-latest
-    needs: [springboot, laravel, frontend]     # ✅ tourne uniquement si les 3 jobs passent
+    needs: [springboot, laravel, frontend]
 
     steps:
       - name: Checkout
