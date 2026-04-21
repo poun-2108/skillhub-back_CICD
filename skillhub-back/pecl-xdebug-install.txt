@@ -1,2 +1,0 @@
-
-Fatal error: Array and string offset access syntax with curly braces is no longer supported in C:\xampp\php\pear\PEAR\Config.php on line 2095

@@ -1,9 +1,0 @@
-> @php artisan config:clear --ansi
-
-  [37;44m INFO [39;49m Configuration cache cleared successfully.  
-
-> @php artisan test --coverage --min=96
-
-   ERROR  Code coverage driver not available. Did you install Xdebug or PCOV?
-
-Script @php artisan test --coverage --min=96 handling the test:coverage event returned with error code 1
