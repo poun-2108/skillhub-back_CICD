@@ -454,6 +454,39 @@ class SkillHubTest extends TestCase
     }
 
     #[Test]
+    public function un_apprenant_ne_peut_pas_sinscrire_a_plus_de_cinq_formations(): void
+    {
+        ['user' => $formateur]                    = $this->creerUtilisateur('formateur');
+        ['user' => $apprenant, 'token' => $token] = $this->creerUtilisateur('apprenant');
+
+        // Pré-charge 5 inscriptions actives pour l'apprenant.
+        for ($i = 0; $i < 5; $i++) {
+            $formation = $this->creerFormation($formateur);
+            Inscription::create([
+                'utilisateur_id' => $apprenant->id,
+                'formation_id'   => $formation->id,
+                'progression'    => 0,
+            ]);
+        }
+
+        // Tentative d'inscription à une 6ᵉ formation.
+        $formationSupplementaire = $this->creerFormation($formateur);
+
+        $response = $this->postJson(
+            self::API_FORMATIONS_PREFIX . $formationSupplementaire->id . self::PATH_INSCRIPTION,
+            [],
+            $this->headers($token)
+        );
+
+        $response->assertStatus(400)
+            ->assertJsonFragment([
+                'message' => "Limite atteinte : un apprenant ne peut pas s'inscrire à plus de 5 formations simultanément.",
+            ]);
+
+        $this->assertSame(5, Inscription::where('utilisateur_id', $apprenant->id)->count());
+    }
+
+    #[Test]
     public function un_formateur_ne_peut_pas_sinscrire_a_une_formation(): void
     {
         ['user' => $formateur, 'token' => $token] = $this->creerUtilisateur('formateur');
