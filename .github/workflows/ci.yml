@@ -13,12 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
+          extensions: pdo, pdo_mysql, pdo_sqlite, mbstring, zip, mongodb-2.2.0
+
       - run: |
           cd skillhub-back
-          composer install
+          composer install --no-interaction --no-progress --prefer-dist
           cp .env.example .env
           php artisan key:generate
           php artisan test
@@ -27,22 +30,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-      - run: |
-          cd springboot
-          ./mvnw clean verify
+          cache: maven
+
+      - name: Permissions mvnw
+        working-directory: springboot
+        run: chmod +x mvnw
+
+      - name: Build et tests Maven
+        working-directory: springboot
+        run: ./mvnw clean verify -B
 
   frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: npm
+          cache-dependency-path: skillhub-front/package-lock.json
+
       - run: |
           cd skillhub-front
-          npm install
+          npm ci
           npm run build
