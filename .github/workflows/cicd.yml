@@ -42,9 +42,10 @@ jobs:
         run: ./mvnw clean verify
 
       - name: Analyse SonarCloud
-        # Ne s'exécute que sur push (main/dev). Sur les pull_request, le projet
-        # SonarCloud est lié à un autre repo GitHub et ne trouve pas la PR.
-        if: env.SONAR_TOKEN != '' && github.event_name == 'push'
+        # Le plan gratuit SonarCloud n'analyse que la branche main. Sur dev
+        # et sur les PR, l'analyse est soit rejetée ("Not analyzed"), soit
+        # échoue ("project binding" 404).
+        if: env.SONAR_TOKEN != '' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: ./mvnw sonar:sonar -Dsonar.token=$SONAR_TOKEN
 
   # ─────────────────────────────────────────
@@ -61,6 +62,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Nécessaire à SonarCloud pour le blame (attribution des lignes).
+          fetch-depth: 0
 
       - name: Install PHP + ext-mongodb 2.2
         uses: shivammathur/setup-php@v2
@@ -81,8 +85,19 @@ jobs:
       - name: Generate JWT Secret
         run: php artisan jwt:secret --force
 
-      - name: Run tests Laravel
-        run: php artisan test
+      - name: Run tests Laravel (avec couverture Clover)
+        run: php artisan test --coverage-clover=coverage.xml --log-junit=junit.xml
+
+      - name: Analyse SonarCloud — Laravel
+        # Le plan gratuit SonarCloud n'analyse que la branche main.
+        # Sur les autres branches/PR, l'analyse est rejetée ("Not analyzed").
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: skillhub-back
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   # ─────────────────────────────────────────
   # JOB 3 — React (Frontend)
