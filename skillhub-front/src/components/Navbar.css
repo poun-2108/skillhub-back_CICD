@@ -1,0 +1,306 @@
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background-color: #0f1623;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    width: 100%;
+}
+
+.navbar-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+/* Logo plus grand et stylé */
+.navbar-logo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #f0f4ff;
+    letter-spacing: -1px;
+    text-decoration: none;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.navbar-logo-hub {
+    color: #4f8ef7;
+}
+
+/* Groupe liens + boutons */
+.navbar-liens {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+/* Liens de navigation */
+.navbar-lien {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #7a8aaa;
+    text-decoration: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    position: relative;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+
+/* Soulignement bleu animé */
+.navbar-lien::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background-color: #4f8ef7;
+    border-radius: 2px;
+    transition: width 0.25s ease;
+}
+
+.navbar-lien:hover {
+    color: #4f8ef7;
+}
+
+.navbar-lien:hover::after {
+    width: calc(100% - 1.8rem);
+}
+
+/* Separateur vertical entre liens et boutons */
+.navbar-separateur {
+    width: 1px;
+    height: 22px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin: 0 0.5rem;
+}
+
+/* Bouton profil avec avatar */
+.navbar-profil {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #f0f4ff;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.navbar-profil:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: #4f8ef7;
+}
+
+/* Avatar photo */
+.navbar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #4f8ef7;
+    flex-shrink: 0;
+}
+
+/* Avatar initiales */
+.navbar-avatar-initiales {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #4f8ef7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+/* Bouton Se connecter */
+.navbar-btn-connexion {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #c8d3e8;
+    padding: 0.48rem 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.navbar-btn-connexion:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #f0f4ff;
+}
+
+/* Bouton Se deconnecter */
+.navbar-btn-deconnexion {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    background: none;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 0.48rem 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+
+.navbar-btn-deconnexion:hover {
+    background-color: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* Burger mobile */
+.navbar-burger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.navbar-burger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background-color: #c8d3e8;
+    border-radius: 2px;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.navbar-burger-ouvert span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.navbar-burger-ouvert span:nth-child(2) {
+    opacity: 0;
+}
+
+.navbar-burger-ouvert span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Responsive mobile */
+@media (max-width: 900px) {
+    .navbar-burger {
+        display: flex;
+    }
+
+    .navbar-liens {
+        display: none;
+        position: absolute;
+        top: 72px;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        background-color: #0f1623;
+        padding: 1.25rem 2rem;
+        gap: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .navbar-liens-ouvert {
+        display: flex;
+    }
+
+    .navbar-lien {
+        width: 100%;
+        padding: 0.6rem 0.5rem;
+    }
+
+    .navbar-separateur {
+        display: none;
+    }
+
+    .navbar-btn-connexion,
+    .navbar-btn-deconnexion {
+        width: 100%;
+        text-align: center;
+    }
+
+    .navbar-profil {
+        width: 100%;
+    }
+}
+/* ── Bouton icône messagerie ──────────────────────────────── */
+.navbar-messagerie-btn {
+    position: relative;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar-messagerie-btn:hover {
+    background: rgba(245, 166, 35, 0.2);
+    border-color: #f5a623;
+    color: #f5a623;
+}
+
+.navbar-messagerie-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ── Badge rouge nombre de messages ───────────────────────── */
+.navbar-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #e53935;
+    color: #ffffff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid #0d1b2a;
+    animation: badge-pop 0.3s ease;
+}
+
+@keyframes badge-pop {
+    0%   { transform: scale(0); }
+    70%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}

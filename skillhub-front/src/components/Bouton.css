@@ -1,0 +1,76 @@
+.bouton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.bouton:active {
+    transform: scale(0.97);
+}
+
+/* Tailles */
+.bouton-petit  { padding: 0.38rem 0.9rem;  font-size: 0.82rem; }
+.bouton-moyen  { padding: 0.55rem 1.2rem;  font-size: 0.9rem;  }
+.bouton-grand  { padding: 0.75rem 1.75rem; font-size: 1rem;    }
+
+/* Principal — bleu */
+.bouton-principal {
+    background-color: #4f8ef7;
+    color: #ffffff;
+}
+
+.bouton-principal:hover {
+    background-color: #3b6fd4;
+    transform: translateY(-1px);
+}
+
+/* Secondaire — fond léger */
+.bouton-secondaire {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: #c8d3e8;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.bouton-secondaire:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #f0f4ff;
+    transform: translateY(-1px);
+}
+
+/* Danger — rouge */
+.bouton-danger {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.bouton-danger:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Fantome — contour bleu */
+.bouton-fantome {
+    background-color: transparent;
+    color: #4f8ef7;
+    border: 1px solid rgba(79, 142, 247, 0.35);
+}
+
+.bouton-fantome:hover {
+    background-color: rgba(79, 142, 247, 0.08);
+    transform: translateY(-1px);
+}
+
+/* Désactivé */
+.bouton-desactive {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none !important;
+}

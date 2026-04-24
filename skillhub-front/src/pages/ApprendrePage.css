@@ -1,0 +1,427 @@
+.apprendre-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #0f1623;
+    color: #f0f4ff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.apprendre-contenu {
+    flex: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    width: 100%;
+}
+
+/* En-tete formation */
+.apprendre-entete {
+    background-color: #1a2236;
+    border-radius: 14px;
+    padding: 1.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.apprendre-retour {
+    background: none;
+    border: none;
+    color: #4f8ef7;
+    font-size: 0.875rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    font-weight: 500;
+    transition: opacity 0.2s;
+}
+
+.apprendre-retour:hover {
+    opacity: 0.75;
+}
+
+.apprendre-titre {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: #f0f4ff;
+    margin: 0;
+    letter-spacing: -1px;
+    line-height: 1.15;
+}
+
+.apprendre-description {
+    font-size: 0.95rem;
+    color: #7a8aaa;
+    line-height: 1.7;
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Progression */
+.apprendre-progression-bloc {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.apprendre-progression-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.apprendre-progression-label {
+    font-size: 0.85rem;
+    color: #7a8aaa;
+    font-weight: 500;
+}
+
+.apprendre-progression-valeur {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #4f8ef7;
+}
+
+.apprendre-progression-barre {
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.07);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.apprendre-progression-remplissage {
+    height: 100%;
+    background: linear-gradient(90deg, #4f8ef7, #7c5cfc);
+    border-radius: 20px;
+    transition: width 0.5s ease;
+}
+
+.apprendre-felicitations {
+    font-size: 0.9rem;
+    color: #4ade80;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Messages */
+.apprendre-succes {
+    background-color: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #4ade80;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.apprendre-erreur {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #f87171;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+/* Layout sidebar + contenu */
+.apprendre-layout {
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* Sidebar modules */
+.apprendre-sidebar {
+    background-color: #1a2236;
+    border-radius: 14px;
+    padding: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    position: sticky;
+    top: 80px;
+}
+
+.apprendre-sidebar-titre {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f0f4ff;
+    margin-bottom: 1rem;
+    letter-spacing: -0.3px;
+}
+
+.apprendre-modules-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.apprendre-module-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    color: #7a8aaa;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.875rem;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.apprendre-module-item:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    color: #c8d3e8;
+}
+
+.apprendre-module-actif {
+    background-color: rgba(79, 142, 247, 0.1);
+    border-color: rgba(79, 142, 247, 0.2);
+    color: #60a5fa;
+}
+
+.apprendre-module-termine {
+    color: #4ade80;
+}
+
+.apprendre-module-numero {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.07);
+    color: #7a8aaa;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Outfit', sans-serif;
+}
+
+.apprendre-module-actif .apprendre-module-numero {
+    background-color: #4f8ef7;
+    color: #ffffff;
+}
+
+.apprendre-module-termine .apprendre-module-numero {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+}
+
+.apprendre-module-nom {
+    font-size: 0.855rem;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Contenu module */
+.apprendre-module-contenu {
+    background-color: #1a2236;
+    border-radius: 14px;
+    padding: 1.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.apprendre-module-entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.apprendre-module-titre {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #f0f4ff;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.apprendre-badge-termine {
+    background-color: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #4ade80;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.85rem;
+    border-radius: 50px;
+    white-space: nowrap;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.apprendre-module-texte {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    line-height: 1.85;
+    flex: 1;
+    white-space: pre-wrap;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.apprendre-navigation {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.apprendre-vide {
+    color: #7a8aaa;
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 3rem;
+}
+
+.apprendre-chargement {
+    text-align: center;
+    padding: 3rem;
+    color: #7a8aaa;
+    flex: 1;
+}
+
+.apprendre-erreur-page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: #f87171;
+}
+
+@media (max-width: 768px) {
+    .apprendre-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .apprendre-sidebar {
+        position: static;
+    }
+
+    .apprendre-titre {
+        font-size: 1.5rem;
+    }
+}
+/* ============================================================
+   RESPONSIVE — ApprendrePage
+   ============================================================ */
+
+@media (max-width: 900px) {
+    .apprendre-contenu {
+        padding: 1.5rem 1rem;
+    }
+
+    .apprendre-titre {
+        font-size: 1.6rem;
+        letter-spacing: -0.5px;
+    }
+
+    /* Layout passe en colonne : sidebar au-dessus du contenu */
+    .apprendre-layout {
+        grid-template-columns: 1fr;
+    }
+
+    /* Sidebar n'est plus sticky sur mobile */
+    .apprendre-sidebar {
+        position: static;
+    }
+
+    /* Liste des modules en grille 2 colonnes sur tablette */
+    .apprendre-modules-liste {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .apprendre-contenu {
+        padding: 1rem 0.75rem;
+    }
+
+    .apprendre-entete {
+        padding: 1.1rem;
+        gap: 1rem;
+    }
+
+    .apprendre-titre {
+        font-size: 1.3rem;
+    }
+
+    .apprendre-description {
+        font-size: 0.88rem;
+    }
+
+    /* Modules en 1 colonne sur mobile */
+    .apprendre-modules-liste {
+        grid-template-columns: 1fr;
+    }
+
+    .apprendre-module-contenu {
+        padding: 1.1rem;
+        min-height: unset;
+    }
+
+    /* En-tête module : titre + bouton empilés */
+    .apprendre-module-entete {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .apprendre-module-titre {
+        font-size: 1.1rem;
+    }
+
+    /* Bouton "Marquer comme terminé" pleine largeur */
+    .apprendre-module-entete .bouton {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .apprendre-badge-termine {
+        align-self: flex-start;
+    }
+
+    .apprendre-module-texte {
+        font-size: 0.88rem;
+        line-height: 1.7;
+    }
+
+    /* Navigation précédent / suivant pleine largeur */
+    .apprendre-navigation {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .apprendre-navigation .bouton {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 400px) {
+    .apprendre-titre {
+        font-size: 1.1rem;
+    }
+
+    .apprendre-sidebar-titre {
+        font-size: 0.85rem;
+    }
+}
