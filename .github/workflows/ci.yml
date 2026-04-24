@@ -19,11 +19,14 @@ jobs:
           php-version: 8.2
           extensions: pdo, pdo_mysql, pdo_sqlite, mbstring, zip, mongodb-2.2.0
 
-      - run: |
-          cd skillhub-back
+      - name: Installer, preparer et tester Laravel
+        working-directory: skillhub-back
+        run: |
           composer install --no-interaction --no-progress --prefer-dist
           cp .env.example .env
           php artisan key:generate
+          php artisan jwt:secret --force
+          php artisan config:clear
           php artisan test
 
   springboot:
@@ -56,7 +59,8 @@ jobs:
           cache: npm
           cache-dependency-path: skillhub-front/package-lock.json
 
-      - run: |
-          cd skillhub-front
+      - name: Installer et builder le frontend
+        working-directory: skillhub-front
+        run: |
           npm ci
           npm run build
