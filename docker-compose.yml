@@ -31,6 +31,19 @@ services:
     volumes:
       - skillhub_mongo_data:/data/db
 
+  # ── Auth Service Spring Boot ─────────────────────────────────────────────────
+  skillhub-auth:
+    build:
+      context: ./springboot
+      dockerfile: Dockerfile
+    container_name: skillhub_auth
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8000
+
   # ── Backend Laravel ───────────────────────────────────────────────────────────
   skillhub-back:
     build:
@@ -42,6 +55,8 @@ services:
       mysql:
         condition: service_healthy
       mongodb:
+        condition: service_started
+      skillhub-auth:
         condition: service_started
     ports:
       - "8001:8001"
