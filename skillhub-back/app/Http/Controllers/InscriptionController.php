@@ -19,6 +19,11 @@ class InscriptionController extends Controller
     private const FORMATION_NOT_FOUND_MESSAGE = 'Formation introuvable';
 
     /**
+     * Nombre maximum d'inscriptions actives autorisées par apprenant.
+     */
+    public const LIMITE_INSCRIPTIONS_ACTIVES = 5;
+
+    /**
      * Inscrire un apprenant à une formation.
      * Route : POST /formations/{id}/inscription
      */
@@ -55,6 +60,15 @@ class InscriptionController extends Controller
                 return response()->json([
                     'message' => 'Vous êtes déjà inscrit à cette formation'
                 ], 409);
+            }
+
+            $nombreInscriptionsActives = Inscription::where('utilisateur_id', $user->id)->count();
+
+            if ($nombreInscriptionsActives >= self::LIMITE_INSCRIPTIONS_ACTIVES) {
+                return response()->json([
+                    'message' => "Limite atteinte : un apprenant ne peut pas s'inscrire à plus de "
+                        . self::LIMITE_INSCRIPTIONS_ACTIVES . ' formations simultanément.'
+                ], 400);
             }
 
             $inscription = Inscription::create([

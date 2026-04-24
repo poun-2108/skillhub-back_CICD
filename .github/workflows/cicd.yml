@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
 
@@ -42,7 +42,10 @@ jobs:
         run: ./mvnw clean verify
 
       - name: Analyse SonarCloud
-        if: env.SONAR_TOKEN != ''
+        # Le plan gratuit SonarCloud n'analyse que la branche main. Sur dev
+        # et sur les PR, l'analyse est soit rejetée ("Not analyzed"), soit
+        # échoue ("project binding" 404).
+        if: env.SONAR_TOKEN != '' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: ./mvnw sonar:sonar -Dsonar.token=$SONAR_TOKEN
 
   # ─────────────────────────────────────────
@@ -59,6 +62,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Nécessaire à SonarCloud pour le blame (attribution des lignes).
+          fetch-depth: 0
 
       - name: Install PHP + ext-mongodb 2.2
         uses: shivammathur/setup-php@v2
@@ -76,8 +82,22 @@ jobs:
       - name: Generate App Key
         run: php artisan key:generate
 
-      - name: Run tests Laravel
-        run: php artisan test
+      - name: Generate JWT Secret
+        run: php artisan jwt:secret --force
+
+      - name: Run tests Laravel (avec couverture Clover)
+        run: php artisan test --coverage-clover=coverage.xml --log-junit=junit.xml
+
+      - name: Analyse SonarCloud — Laravel
+        # Le plan gratuit SonarCloud n'analyse que la branche main.
+        # Sur les autres branches/PR, l'analyse est rejetée ("Not analyzed").
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: skillhub-back
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   # ─────────────────────────────────────────
   # JOB 3 — React (Frontend)
@@ -114,28 +134,49 @@ jobs:
     name: Docker — Build & Push
     runs-on: ubuntu-latest
     needs: [springboot, laravel, frontend]
+    # Le push Docker Hub n'a de sens que sur main/dev (et pas sur les PR
+    # qui n'ont pas accès aux secrets Docker Hub).
+    if: github.event_name == 'push'
+
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
 
     steps:
+      - name: Verifier les secrets Docker Hub
+        id: check
+        run: |
+          if [ -z "$DOCKER_USER" ]; then
+            echo "::warning::Secrets DOCKER_USERNAME/DOCKER_PASSWORD absents — job Docker ignoré."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
+        if: steps.check.outputs.skip != 'true'
         uses: actions/checkout@v4
 
       - name: Login Docker Hub
+        if: steps.check.outputs.skip != 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build & Push skillhub-auth (Spring Boot)
+        if: steps.check.outputs.skip != 'true'
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/skillhub-auth:latest ./springboot
           docker push ${{ secrets.DOCKER_USERNAME }}/skillhub-auth:latest
 
       - name: Build & Push skillhub-back (Laravel)
+        if: steps.check.outputs.skip != 'true'
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/skillhub-back:latest ./skillhub-back
           docker push ${{ secrets.DOCKER_USERNAME }}/skillhub-back:latest
 
       - name: Build & Push skillhub-front (React)
+        if: steps.check.outputs.skip != 'true'
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/skillhub-front:latest ./skillhub-front
           docker push ${{ secrets.DOCKER_USERNAME }}/skillhub-front:latest
