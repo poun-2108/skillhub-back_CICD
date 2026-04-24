@@ -119,6 +119,9 @@ jobs:
     name: Docker — Build & Push
     runs-on: ubuntu-latest
     needs: [springboot, laravel, frontend]
+    # Le push Docker Hub n'a de sens que sur main/dev (et pas sur les PR
+    # qui n'ont pas accès aux secrets Docker Hub).
+    if: github.event_name == 'push'
 
     steps:
       - name: Checkout
