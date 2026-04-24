@@ -1,0 +1,48 @@
+name: CI SkillHub
+
+on:
+  push:
+    branches: ["**"]
+
+  pull_request:
+    branches: ["**"]
+
+jobs:
+
+  laravel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+      - run: |
+          cd skillhub-back
+          composer install
+          cp .env.example .env
+          php artisan key:generate
+          php artisan test
+
+  springboot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: |
+          cd springboot
+          ./mvnw clean verify
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: |
+          cd skillhub-front
+          npm install
+          npm run build
