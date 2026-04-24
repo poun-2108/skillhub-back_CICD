@@ -42,7 +42,9 @@ jobs:
         run: ./mvnw clean verify
 
       - name: Analyse SonarCloud
-        if: env.SONAR_TOKEN != ''
+        # Ne s'exécute que sur push (main/dev). Sur les pull_request, le projet
+        # SonarCloud est lié à un autre repo GitHub et ne trouve pas la PR.
+        if: env.SONAR_TOKEN != '' && github.event_name == 'push'
         run: ./mvnw sonar:sonar -Dsonar.token=$SONAR_TOKEN
 
   # ─────────────────────────────────────────

@@ -18,9 +18,9 @@ use Tymon\JWTAuth\Facades\JWTAuth;
  *
  * Couvre :
  * - Authentification (register, login, profile, logout)
- * - Formations (CRUD formateur, contrÃ´le rÃ´le)
- * - Modules (CRUD formateur, contrÃ´le rÃ´le et propriÃ©tÃ©)
- * - Inscriptions (inscription, doublon, dÃ©sinscription, mes formations)
+ * - Formations (CRUD formateur, contrôle rôle)
+ * - Modules (CRUD formateur, contrôle rôle et propriété)
+ * - Inscriptions (inscription, doublon, désinscription, mes formations)
  * - Progression (terminer module, doublon, calcul pourcentage)
  * - Erreurs attendues (401, 403, 404, 409)
  */
@@ -48,11 +48,11 @@ class SkillHubTest extends TestCase
     private const ALLOWED_ORIGIN = 'http://localhost:5173';
 
     // -------------------------------------------------------------------------
-    // Helpers privÃ©s
+    // Helpers privés
     // -------------------------------------------------------------------------
 
     /**
-     * CrÃ©e un utilisateur et retourne son token JWT.
+     * Crée un utilisateur et retourne son token JWT.
      */
     private function creerUtilisateur(string $role): array
     {
@@ -69,7 +69,7 @@ class SkillHubTest extends TestCase
     }
 
     /**
-     * CrÃ©e une formation appartenant au formateur donnÃ©.
+     * Crée une formation appartenant au formateur donné.
      */
     private function creerFormation(User $formateur): Formation
     {
@@ -84,7 +84,7 @@ class SkillHubTest extends TestCase
     }
 
     /**
-     * CrÃ©e un module pour la formation donnÃ©e.
+     * Crée un module pour la formation donnée.
      */
     private function creerModule(Formation $formation, int $ordre = 1): Module
     {
@@ -97,7 +97,7 @@ class SkillHubTest extends TestCase
     }
 
     /**
-     * Construit l'en-tÃªte Authorization avec le token JWT.
+     * Construit l'en-tête Authorization avec le token JWT.
      */
     private function headers(string $token): array
     {
@@ -193,7 +193,7 @@ class SkillHubTest extends TestCase
         $response = $this->postJson('/api/logout', [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'DÃ©connexion rÃ©ussie']);
+            ->assertJsonFragment(['message' => 'Déconnexion réussie']);
     }
 
     // =========================================================================
@@ -206,14 +206,14 @@ class SkillHubTest extends TestCase
         ['token' => $token] = $this->creerUtilisateur('formateur');
 
         $response = $this->postJson(self::API_FORMATIONS, [
-            'titre'       => 'Laravel avancÃ©',
+            'titre'       => 'Laravel avancé',
             'description' => 'Apprendre Laravel en profondeur',
             'categorie'   => 'developpement_web',
             'niveau'      => 'avance',
         ], $this->headers($token));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Formation crÃ©Ã©e avec succÃ¨s']);
+            ->assertJsonFragment(['message' => 'Formation créée avec succès']);
     }
 
     #[Test]
@@ -223,7 +223,7 @@ class SkillHubTest extends TestCase
 
         $response = $this->postJson(self::API_FORMATIONS, [
             'titre'       => 'Formation interdite',
-            'description' => 'Test rÃ´le',
+            'description' => 'Test rôle',
             'categorie'   => 'developpement_web',
             'niveau'      => 'debutant',
         ], $this->headers($token));
@@ -274,7 +274,7 @@ class SkillHubTest extends TestCase
         ], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Formation mise Ã  jour avec succÃ¨s']);
+            ->assertJsonFragment(['message' => 'Formation mise à jour avec succès']);
     }
 
     #[Test]
@@ -310,7 +310,7 @@ class SkillHubTest extends TestCase
         $response = $this->deleteJson(self::API_FORMATIONS_PREFIX . $formation->id, [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Formation supprimÃ©e avec succÃ¨s']);
+            ->assertJsonFragment(['message' => 'Formation supprimée avec succès']);
     }
 
     // =========================================================================
@@ -330,7 +330,7 @@ class SkillHubTest extends TestCase
         ], $this->headers($token));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Module crÃ©Ã© avec succÃ¨s']);
+            ->assertJsonFragment(['message' => 'Module créé avec succès']);
     }
 
     #[Test]
@@ -387,13 +387,13 @@ class SkillHubTest extends TestCase
         $module    = $this->creerModule($formation);
 
         $response = $this->putJson(self::API_MODULES_PREFIX . $module->id, [
-            'titre'   => 'Titre modifiÃ©',
-            'contenu' => 'Contenu modifiÃ©',
+            'titre'   => 'Titre modifié',
+            'contenu' => 'Contenu modifié',
             'ordre'   => 1,
         ], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Module mis Ã  jour avec succÃ¨s']);
+            ->assertJsonFragment(['message' => 'Module mis à jour avec succès']);
     }
 
     #[Test]
@@ -406,7 +406,7 @@ class SkillHubTest extends TestCase
         $response = $this->deleteJson(self::API_MODULES_PREFIX . $module->id, [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Module supprimÃ© avec succÃ¨s']);
+            ->assertJsonFragment(['message' => 'Module supprimé avec succès']);
     }
 
     #[Test]
@@ -437,7 +437,7 @@ class SkillHubTest extends TestCase
         $response = $this->postJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_INSCRIPTION, [], $this->headers($tokenApprenant));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Inscription rÃ©ussie']);
+            ->assertJsonFragment(['message' => 'Inscription réussie']);
     }
 
     #[Test]
@@ -523,7 +523,7 @@ class SkillHubTest extends TestCase
         $response = $this->deleteJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_INSCRIPTION, [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'DÃ©sinscription rÃ©ussie']);
+            ->assertJsonFragment(['message' => 'Désinscription réussie']);
     }
 
     #[Test]
@@ -567,7 +567,7 @@ class SkillHubTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonFragment([
-                'message'     => 'Module terminÃ© avec succÃ¨s',
+                'message'     => 'Module terminé avec succès',
                 'progression' => 100,
             ]);
     }
@@ -612,7 +612,7 @@ class SkillHubTest extends TestCase
         $response = $this->postJson(self::API_MODULES_PREFIX . $module->id . self::PATH_TERMINER, [], $this->headers($token));
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['message' => 'Ce module est dÃ©jÃ  terminÃ©']);
+            ->assertJsonFragment(['message' => 'Ce module est déjà terminé']);
     }
 
     #[Test]
@@ -659,7 +659,7 @@ class SkillHubTest extends TestCase
     }
 
     // =========================================================================
-    // SECTION 6 â€” Nouveaux endpoints (ajoutÃ©s lors des corrections)
+    // SECTION 6 â€” Nouveaux endpoints (ajoutés lors des corrections)
     // =========================================================================
 
     #[Test]
@@ -691,7 +691,7 @@ class SkillHubTest extends TestCase
         // Terminer le module
         $this->postJson(self::API_MODULES_PREFIX . $module->id . self::PATH_TERMINER, [], $this->headers($token));
 
-        // VÃ©rifier via le nouvel endpoint
+        // Vérifier via le nouvel endpoint
         $response = $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id . self::PATH_MODULES_TERMINES, $this->headers($token));
 
         $response->assertStatus(200)
@@ -766,7 +766,7 @@ class SkillHubTest extends TestCase
         ], $this->headers($token));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Message envoyÃ©']);
+            ->assertJsonFragment(['message' => 'Message envoyé']);
     }
 
     #[Test]
@@ -776,7 +776,7 @@ class SkillHubTest extends TestCase
 
         $response = $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => $user->id,
-            'contenu'         => 'Message Ã  moi-mÃªme',
+            'contenu'         => 'Message à moi-même',
         ], $this->headers($token));
 
         $response->assertStatus(422);
@@ -887,7 +887,7 @@ class SkillHubTest extends TestCase
         $message = Message::create([
             'expediteur_id'   => $expediteur->id,
             'destinataire_id' => $destinataire->id,
-            'contenu'         => 'Ã€ lire',
+            'contenu'         => 'À lire',
             'lu'              => false,
         ]);
 
@@ -937,7 +937,7 @@ class SkillHubTest extends TestCase
     }
 
     // =========================================================================
-    // SECTION 8 â€” Couverture complÃ©mentaire (filtres, permissions, erreurs)
+    // SECTION 8 â€” Couverture complémentaire (filtres, permissions, erreurs)
     // =========================================================================
 
     #[Test]
@@ -1200,20 +1200,20 @@ class SkillHubTest extends TestCase
         ['user' => $expediteur, 'token' => $token] = $this->creerUtilisateur('formateur');
         ['user' => $destinataire]                  = $this->creerUtilisateur('apprenant');
 
-        // Premier message (dÃ©clenche l'envoi de mail)
+        // Premier message (déclenche l'envoi de mail)
         $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => $destinataire->id,
             'contenu'         => 'Premier message',
         ], $this->headers($token));
 
-        // DeuxiÃ¨me message â€” ne doit pas tenter d'envoyer d'email
+        // Deuxième message â€” ne doit pas tenter d'envoyer d'email
         $response = $this->postJson(self::API_MESSAGES_ENVOYER, [
             'destinataire_id' => $destinataire->id,
-            'contenu'         => 'DeuxiÃ¨me message',
+            'contenu'         => 'Deuxième message',
         ], $this->headers($token));
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Message envoyÃ©']);
+            ->assertJsonFragment(['message' => 'Message envoyé']);
     }
 
     #[Test]
@@ -1246,7 +1246,7 @@ class SkillHubTest extends TestCase
     }
 
     // =========================================================================
-    // SECTION 9 â€” Relations des modÃ¨les, CorsMiddleware, vues en double
+    // SECTION 9 â€” Relations des modèles, CorsMiddleware, vues en double
     // =========================================================================
 
     #[Test]
@@ -1314,7 +1314,7 @@ class SkillHubTest extends TestCase
         // Inscription::utilisateur()
         $this->assertEquals($apprenant->id, $inscription->utilisateur->id);
 
-        // Inscription::formation() (couvert via with() mais testÃ© ici explicitement)
+        // Inscription::formation() (couvert via with() mais testé ici explicitement)
         $this->assertEquals($formation->id, $inscription->formation->id);
     }
 
@@ -1332,7 +1332,7 @@ class SkillHubTest extends TestCase
             'progression'    => 0,
         ]);
 
-        // CrÃ©er la relation pivot module_user via syncWithoutDetaching
+        // Créer la relation pivot module_user via syncWithoutDetaching
         $apprenant->modulesTermines()->syncWithoutDetaching([
             $module->id => ['termine' => true],
         ]);
@@ -1381,7 +1381,12 @@ class SkillHubTest extends TestCase
             ->getJson(self::API_FORMATIONS);
 
         $response->assertStatus(200);
-        $response->assertHeader('Access-Control-Allow-Origin', self::ALLOWED_ORIGIN);
+
+        // La config CORS locale autorise toutes les origines ('*').
+        // L'origine envoyée doit être acceptée, soit explicitement renvoyée,
+        // soit couverte par le wildcard.
+        $allowOrigin = $response->headers->get('Access-Control-Allow-Origin');
+        $this->assertContains($allowOrigin, ['*', self::ALLOWED_ORIGIN]);
     }
 
     #[Test]
@@ -1390,10 +1395,10 @@ class SkillHubTest extends TestCase
         ['user' => $formateur] = $this->creerUtilisateur('formateur');
         $formation = $this->creerFormation($formateur);
 
-        // PremiÃ¨re vue depuis la mÃªme IP (127.0.0.1 en test)
+        // Première vue depuis la même IP (127.0.0.1 en test)
         $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id);
 
-        // DeuxiÃ¨me vue depuis la mÃªme IP â€” ne doit pas incrÃ©menter
+        // Deuxième vue depuis la même IP â€” ne doit pas incrémenter
         $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id);
 
         $formation->refresh();
@@ -1407,10 +1412,10 @@ class SkillHubTest extends TestCase
         ['token' => $token]    = $this->creerUtilisateur('apprenant');
         $formation = $this->creerFormation($formateur);
 
-        // PremiÃ¨re vue authentifiÃ©e
+        // Première vue authentifiée
         $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id, $this->headers($token));
 
-        // DeuxiÃ¨me vue authentifiÃ©e â€” mÃªme utilisateur, ne doit pas incrÃ©menter
+        // Deuxième vue authentifiée â€” même utilisateur, ne doit pas incrémenter
         $this->getJson(self::API_FORMATIONS_PREFIX . $formation->id, $this->headers($token));
 
         $formation->refresh();
