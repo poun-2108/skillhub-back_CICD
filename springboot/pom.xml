@@ -23,7 +23,7 @@
 
 		<!-- SonarCloud -->
 		<sonar.organization>nirina2108</sonar.organization>
-		<sonar.projectKey>Nirina2108_TP_5_Docker</sonar.projectKey>
+		<sonar.projectKey>Nirina2108_moustass-cloudsec</sonar.projectKey>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<sonar.coverage.jacoco.xmlReportPaths>
 			target/site/jacoco/jacoco.xml
