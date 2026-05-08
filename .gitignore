@@ -1,1 +1,42 @@
+# Environnement et secrets
 .env
+.env.backup
+.env.production
+
+# Dépendances
+/vendor
+/node_modules
+.pnpm-store
+
+# Artefacts générés
+.phpunit.result.cache
+coverage.xml
+build/
+/public/build
+/public/hot
+/public/storage
+
+# Stockage Laravel runtime
+/storage/*.key
+/storage/pail
+/storage/logs/*.log
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+
+# IDE
+.idea/
+.fleet/
+*.iml
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs et temporaires
+npm-debug.log
+yarn-error.log
+*.log
