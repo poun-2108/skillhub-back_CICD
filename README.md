@@ -202,28 +202,33 @@ docker.io/<DOCKER_USERNAME>/skillhub-back:latest
 skillhub-back_CICD/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              # Pipeline CI/CD GitHub Actions
+│       ├── ci.yml              # Pipeline CI/CD complet (tests + Docker)
+│       ├── cicd.yml            # Workflow CI etendu
+│       └── sonar.yml           # Analyse SonarCloud sur chaque branche
 ├── app/
 │   ├── Http/
-│   │   ├── Controllers/        # AuthController, FormationController, etc.
+│   │   ├── Controllers/        # AuthController, FormationController, RatingController, etc.
 │   │   └── Middleware/         # CorsMiddleware
 │   ├── Mail/                   # NouveauMessageMail
-│   ├── Models/                 # User, Formation, Module, Inscription...
-│   └── Services/               # ActivityLogService
+│   ├── Models/                 # User, Formation, Module, Inscription, Rating...
+│   └── Services/               # ActivityLogService, RatingService, InscriptionService
 ├── config/                     # Configuration Laravel
 ├── database/
-│   └── migrations/             # Migrations MySQL
+│   └── migrations/             # Migrations MySQL (incl. ratings)
 ├── routes/
 │   └── api.php                 # Routes API REST
 ├── tests/
 │   └── Feature/
-│       └── SkillHubTest.php    # Tests fonctionnels (34 tests)
+│       ├── SkillHubTest.php           # Tests fonctionnels existants
+│       ├── RatingControllerTest.php   # 5 tests notation (feature B1)
+│       └── ListeApprenantTest.php     # 5 tests liste apprenants (feature B2)
 ├── .dockerignore               # Exclusions contexte Docker
 ├── .env.example                # Template variables d environnement
 ├── .gitignore                  # Exclusions Git
 ├── Dockerfile                  # Image multi-stage PHP 8.2
 ├── docker-compose.yml          # Orchestration locale
-├── sonar-project.properties    # Configuration SonarCloud
+├── sonar-project.properties    # Configuration SonarCloud (Nirina2108_skillhub-back_CICD)
+├── RAPPORT_PARTIE_D.md         # Rapport SonarCloud + onboarding (epreuve EC 09)
 ├── CONTRIBUTING.md             # Guide de contribution
 └── README.md                   # Ce fichier
 ```
@@ -236,8 +241,13 @@ skillhub-back_CICD/
 |---------|------|
 | `main` | Production — code stable, aucun commit direct |
 | `dev` | Integration — accumule les features validees |
-| `feature/<nom>` | Une branche par fonctionnalite |
+| `feature/<nom>` ou `feature_<nom>` | Une branche par fonctionnalite |
 | `hotfix/<nom>` | Correction urgente — merge vers main et dev |
+
+Branches livrees pendant l epreuve EC 09 :
+
+- `feature_progression-apprenant` — systeme de notation des formations (POST `/noter` + champs `note_moyenne` / `nombre_avis` sur `GET /formations/{id}`)
+- `feature_list-apprenants` — liste des apprenants inscrits (`GET /formations/{id}/apprenants`)
 
 Voir `CONTRIBUTING.md` pour la procedure complete.
 
@@ -252,8 +262,11 @@ Voir `CONTRIBUTING.md` pour la procedure complete.
 | GET | `/api/profile` | Profil utilisateur connecte |
 | POST | `/api/logout` | Deconnexion |
 | GET | `/api/formations` | Liste des formations |
+| GET | `/api/formations/{id}` | Detail formation + `note_moyenne` + `nombre_avis` |
 | POST | `/api/formations` | Creer une formation (formateur) |
 | POST | `/api/formations/{id}/inscription` | S inscrire (apprenant) |
+| POST | `/api/formations/{id}/noter` | Noter une formation (apprenant inscrit) |
+| GET | `/api/formations/{id}/apprenants` | Liste des apprenants inscrits (formateur proprietaire) |
 | POST | `/api/modules/{id}/terminer` | Terminer un module |
 | POST | `/api/messages/envoyer` | Envoyer un message |
 
@@ -265,6 +278,26 @@ Voir `CONTRIBUTING.md` pour la procedure complete.
 - Couverture de tests cible : 96%+
 - Standard PSR-12 verifie a chaque CI
 - Objectif : Quality Gate PASSED, moins de 10 issues
+
+---
+
+## Outils d assistance utilises
+
+Pendant l epreuve EC 09 (Partie B implementation des features, Partie C
+configuration SonarCloud, Partie D rapport d analyse), **Claude AI** (Anthropic)
+a ete utilise comme assistant pour :
+
+- la redaction et l execution des **commits Git** (messages au format
+  conventional commits, par exemple `feat(rating): ...`, `fix(sonar): ...`,
+  `chore(tests): ...`)
+- les **push** vers le depot GitHub `poun-2108/skillhub-back_CICD` (branches
+  `main`, `feature_progression-apprenant`, `feature_list-apprenants`)
+- les rebases successifs lors de la divergence avec `origin/main` apres
+  l ajout de la PR de limitation des inscriptions
+
+Le code applicatif (controleurs, services, modeles, migrations) ainsi que les
+tests PHPUnit ont ete generes a l aide de Claude AI puis valides localement
+(`php artisan test --filter ...`) avant chaque push.
 
 ---
 
