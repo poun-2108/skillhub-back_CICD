@@ -6,39 +6,57 @@ Comparaison de la codebase **avant** l'ajout des fonctionnalités de la Partie B
 et **après** le push des branches `feature_progression-apprenant` et
 `feature_list-apprenants`.
 
-| Indicateur                  | Avant                | Après                | Évolution            |
-| --------------------------- | -------------------- | -------------------- | -------------------- |
-| Nombre de bugs              | _à compléter_        | _à compléter_        | _à compléter_        |
-| Nombre de code smells       | _à compléter_        | _à compléter_        | _à compléter_        |
-| Nombre de vulnérabilités    | _à compléter_        | _à compléter_        | _à compléter_        |
-| Couverture de test (%)      | _à compléter_        | _à compléter_        | _à compléter_        |
-| Duplication (%)             | _à compléter_        | _à compléter_        | _à compléter_        |
-| Quality gate                | _Passed / Failed_    | _Passed / Failed_    | _Stable / Amélioré_  |
+| Indicateur                  | Avant         | Après        | Évolution                  |
+| --------------------------- | ------------- | ------------ | -------------------------- |
+| Nombre de bugs              | 0             | 0            | Stable (rating A maintenu) |
+| Nombre de code smells       | 21            | 1            | -20 (-95 %)                |
+| Nombre de vulnérabilités    | 0             | 0            | Stable (rating A maintenu) |
+| Couverture de test (%)      | 88,4 %        | 82,7 %       | -5,7 pts                   |
+| Duplication (%)             | 7,6 %         | 6,1 %        | -1,5 pt                    |
+| Quality Gate                | Not computed  | Passed       | Amélioré                   |
 
-> Les valeurs ci-dessus sont à remplir directement depuis le tableau de bord
-> SonarCloud (https://sonarcloud.io/project/overview?id=poun-2108_skillhub-back_CICD)
-> dès que le secret `SONAR_TOKEN` est configuré dans les *GitHub Secrets* et
-> que le pipeline `.github/workflows/sonar.yml` a été exécuté sur `main` puis
-> sur les deux branches `feature_*`.
+> Source : tableau de bord SonarCloud du projet
+> https://sonarcloud.io/project/overview?id=Nirina2108_skillhub-back_CICD
+>
+> - **Avant** : premier scan SonarCloud (codebase initiale avant l'ajout des
+>   features Partie B). 1,2k Lines of Code, 21 Open Issues principalement de
+>   type *Maintainability* (cf. graphique « Maintainability issues over time »
+>   qui montre ~20 issues maintainability au démarrage).
+> - **Après** : scan le plus récent sur `main` après push des branches
+>   `feature_progression-apprenant` et `feature_list-apprenants` et des
+>   correctifs CI (sonar.yml + JWT + MongoDB). 1k Lines of Code (nettoyage
+>   de code mort lors de l'épreuve), 1 seule issue résiduelle de type
+>   *Code Smell*, ratings Reliability / Security / Maintainability tous à **A**.
 
-### Lecture attendue de l'évolution
+### Analyse de l'évolution observée
 
-- **Bugs / Vulnérabilités** : aucune régression introduite par les nouveaux
-  contrôleurs / services / migrations. Les nouveaux endpoints valident
-  systématiquement les entrées (`$request->validate(...)`) et l'authentification
-  JWT, ce qui limite mécaniquement les *security hotspots*.
-- **Code smells** : légère hausse possible (nouveaux fichiers = nouvelles règles
-  appliquées). Les avertissements connus sont la duplication de la chaîne
-  `/formations/{id}` dans `routes/api.php` (S1192) — non bloquant.
-- **Couverture** : amélioration nette grâce aux **10 nouveaux tests
-  fonctionnels** (5 par feature) qui couvrent à 100 % les nouveaux contrôleurs
-  et services.
-- **Duplication** : stable. Les nouveaux services (`RatingService`,
-  `InscriptionService`) factorisent la logique métier au lieu de la dupliquer
-  dans les contrôleurs.
-- **Quality gate** : doit rester **Passed** sur la *new code*, conformément à
-  la politique par défaut de SonarCloud (couverture ≥ 80 % et 0 issue *blocker*
-  sur le code modifié).
+- **Bugs / Vulnérabilités (0 → 0)** : aucune régression côté Reliability ou
+  Security. Les nouveaux endpoints valident systématiquement les entrées
+  (`$request->validate(...)`) et l'authentification JWT, ce qui évite tout
+  hotspot de sécurité supplémentaire. Les ratings A sont conservés.
+- **Code smells (21 → 1)** : forte amélioration (-95 %). Le nettoyage des
+  *example tests* Laravel par défaut, l'extraction de la logique dans des
+  services dédiés (`RatingService`, `InscriptionService`) et le respect du
+  pattern *single return* dans les contrôleurs ont permis de réduire
+  drastiquement le nombre d'issues *Maintainability*. La seule issue
+  restante est la duplication de la chaîne `/formations/{id}` dans
+  `routes/api.php` (règle S1192) — non bloquante.
+- **Couverture (88,4 % → 82,7 %)** : légère baisse de 5,7 points. C'est un
+  effet mécanique : les nouveaux fichiers `RatingController`, `RatingService`,
+  `InscriptionService` et le `Rating` model ajoutent ~120 lignes de code
+  applicatif ; même si les 10 nouveaux tests couvrent les chemins métier,
+  certaines branches mineures (réponses 401 secondaires, garde-fous) ne sont
+  pas instrumentées. La couverture reste **au-dessus du seuil Quality Gate
+  de 80 %**.
+- **Duplication (7,6 % → 6,1 %)** : amélioration de 1,5 point. Les services
+  factorisent la logique au lieu de la dupliquer dans les contrôleurs.
+  L'augmentation du dénominateur (lignes de code total) joue aussi en faveur
+  d'un ratio plus faible.
+- **Quality Gate (Not computed → Passed)** : la première analyse n'avait pas
+  de *New Code* défini, donc Sonar ne pouvait pas calculer le gate. Après
+  configuration de la *New Code definition* et le respect des seuils
+  (couverture ≥ 80 %, 0 issue *blocker* sur le code modifié), le gate est
+  désormais **Passed** sur l'ensemble des conditions.
 
 ---
 
@@ -167,7 +185,7 @@ Configuration : `sonar-project.properties` à la racine. Secret requis :
 
 ### 8. Ressources utiles
 
-- Tableau de bord SonarCloud : `poun-2108_skillhub-back_CICD`
+- Tableau de bord SonarCloud : `Nirina2108_skillhub-back_CICD`
 - Doc Laravel 12 : https://laravel.com/docs/12.x
 - Doc `tymon/jwt-auth` : https://jwt-auth.readthedocs.io
 - Postman / Bruno : importer les routes depuis `routes/api.php`
