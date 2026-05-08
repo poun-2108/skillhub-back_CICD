@@ -14,7 +14,7 @@ import org.springframework.core.annotation.Order;
 /**
  * Configuration CORS pour autoriser les requetes du frontend React.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.1
  */
 @Configuration

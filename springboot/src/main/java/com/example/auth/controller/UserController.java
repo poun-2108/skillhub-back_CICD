@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Controller pour la gestion des utilisateurs.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.1
  */
 @RestController

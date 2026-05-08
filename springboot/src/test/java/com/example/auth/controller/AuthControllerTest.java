@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MvcResult;
 /**
  * Tests du controller d authentification.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.0
  */
 @SpringBootTest(classes = AuthApplication.class)

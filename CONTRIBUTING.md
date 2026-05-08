@@ -8,7 +8,7 @@ Guide de contribution pour le projet SkillHub (Bloc 03 — Cloud, DevOps et Arch
 
 | Membre | Rôle | Responsabilités principales |
 |--------|------|-----------------------------|
-| Nirina | Tech Lead | Versionning Git, README, CONTRIBUTING, coordination, SonarCloud |
+| MU202605 | Tech Lead | Versionning Git, README, CONTRIBUTING, coordination, SonarCloud |
 | Membre 2 | Cloud Architect | Rapport d'audit, schéma C4, plan budgétaire, comparaison cloud |
 | Membre 3 | DevOps Engineer | Dockerfile, docker-compose.yml, pipeline CI/CD, orchestration |
 

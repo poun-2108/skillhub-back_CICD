@@ -30,7 +30,7 @@ import java.util.UUID;
  * SkillHub :
  * - gestion du role apprenant / formateur
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.1
  */
 @Service

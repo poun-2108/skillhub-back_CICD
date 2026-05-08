@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * SkillHub :
  * - role apprenant ou formateur
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.2
  */
 @Entity

@@ -26,7 +26,7 @@ import java.util.UUID;
  * Controller pour la gestion du profil utilisateur.
  * Permet l upload et la recuperation de la photo de profil.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.1
  */
 @RestController

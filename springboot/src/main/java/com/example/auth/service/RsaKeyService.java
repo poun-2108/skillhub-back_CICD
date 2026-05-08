@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
  * - Bob dechiffre avec sa cle privee
  * - Les messages sont haches avec SHA-256
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.0
  */
 @Service

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 /**
  * Service d envoi d emails de confirmation.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.1
  */
 @Service

@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Tests complets du service d authentification Moustass CloudSec.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.0
  */
 @SpringBootTest(classes = AuthApplication.class)

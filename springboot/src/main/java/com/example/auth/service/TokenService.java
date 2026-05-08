@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * Service de validation du token Bearer.
  * Centralise la logique de verification pour eviter la duplication.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.0
  */
 @Service

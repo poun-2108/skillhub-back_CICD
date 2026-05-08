@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 /**
  * Test de la comparaison en temps constant.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.0
  */
 public class ConstantTimeEqualsTest {

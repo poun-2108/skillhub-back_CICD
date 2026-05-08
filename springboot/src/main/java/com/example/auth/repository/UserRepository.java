@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Repository pour gerer les utilisateurs.
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.0
  */
 public interface UserRepository extends JpaRepository<User, Long> {

@@ -30,7 +30,7 @@ import java.util.Map;
  * - POST /logout
  * - PUT  /change-password
  *
- * @author Nirina
+ * @author MU202605
  * @version 1.0
  */
 @RestController
