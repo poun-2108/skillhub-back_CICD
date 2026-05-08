@@ -16,7 +16,7 @@ et **après** le push des branches `feature_progression-apprenant` et
 | Quality gate                | _Passed / Failed_    | _Passed / Failed_    | _Stable / Amélioré_  |
 
 > Les valeurs ci-dessus sont à remplir directement depuis le tableau de bord
-> SonarCloud (https://sonarcloud.io/project/overview?id=poun-2108_skillhub-back_CICD)
+> SonarCloud (https://sonarcloud.io/project/overview?id=Nirina2108_skillhub-back_CICD)
 > dès que le secret `SONAR_TOKEN` est configuré dans les *GitHub Secrets* et
 > que le pipeline `.github/workflows/sonar.yml` a été exécuté sur `main` puis
 > sur les deux branches `feature_*`.
@@ -167,7 +167,7 @@ Configuration : `sonar-project.properties` à la racine. Secret requis :
 
 ### 8. Ressources utiles
 
-- Tableau de bord SonarCloud : `poun-2108_skillhub-back_CICD`
+- Tableau de bord SonarCloud : `Nirina2108_skillhub-back_CICD`
 - Doc Laravel 12 : https://laravel.com/docs/12.x
 - Doc `tymon/jwt-auth` : https://jwt-auth.readthedocs.io
 - Postman / Bruno : importer les routes depuis `routes/api.php`
