@@ -29,6 +29,12 @@ jobs:
       - name: Installation des dependances PHP via Composer
         run: composer install --prefer-dist --no-progress --no-interaction
 
+      - name: Preparation de l'environnement de test
+        run: |
+          cp .env.example .env || true
+          php artisan key:generate --force
+          php artisan jwt:secret --force
+
       - name: Execution des tests PHPUnit avec couverture
         run: php artisan test --coverage-clover coverage.xml
 
