@@ -5,6 +5,7 @@ use App\Http\Controllers\FormationController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ModuleController;
+use App\Http\Controllers\RatingController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Test API ─────────────────────────────────────────────────
@@ -39,6 +40,9 @@ Route::post('/modules/{id}/terminer',   [ModuleController::class, 'terminer']);
 Route::post('/formations/{id}/inscription',   [InscriptionController::class, 'store']);
 Route::delete('/formations/{id}/inscription', [InscriptionController::class, 'destroy']);
 Route::get('/apprenant/formations',           [InscriptionController::class, 'mesFormations']);
+
+// ─── Notations ────────────────────────────────────────────────
+Route::post('/formations/{id}/noter',         [RatingController::class, 'noter']);
 
 // ─── Messagerie ───────────────────────────────────────────────
 Route::get('/messages/non-lus',                       [MessageController::class, 'nonLus']);

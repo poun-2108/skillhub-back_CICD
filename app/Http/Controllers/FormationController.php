@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Formation;
 use App\Models\FormationVue;
 use App\Services\ActivityLogService;
+use App\Services\RatingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -18,6 +19,10 @@ class FormationController extends Controller
     private const MSG_TOKEN_INVALIDE   = 'Token invalide ou absent';
     private const MSG_USER_NON_TROUVE  = 'Utilisateur non trouvé';
     private const MSG_FORMATION_INTRO  = 'Formation introuvable';
+
+    public function __construct(private readonly RatingService $ratingService = new RatingService())
+    {
+    }
 
     /**
      * Liste des formations avec filtres optionnels.
@@ -102,7 +107,12 @@ class FormationController extends Controller
 
         ActivityLogService::consultationFormation($formation->id, $utilisateurId);
 
-        return response()->json($formation->fresh(['formateur:id,nom,email']));
+        $formationFraiche = $formation->fresh(['formateur:id,nom,email']);
+        $reponseFormation = $formationFraiche->toArray();
+        $reponseFormation['note_moyenne'] = $this->ratingService->noteMoyenne($formation->id);
+        $reponseFormation['nombre_avis']  = $this->ratingService->nombreAvis($formation->id);
+
+        return response()->json($reponseFormation);
     }
 
     /**
