@@ -38,6 +38,7 @@ Route::post('/modules/{id}/terminer',   [ModuleController::class, 'terminer']);
 // ─── Inscriptions ─────────────────────────────────────────────
 Route::post('/formations/{id}/inscription',   [InscriptionController::class, 'store']);
 Route::delete('/formations/{id}/inscription', [InscriptionController::class, 'destroy']);
+Route::get('/formations/{id}/apprenants',     [InscriptionController::class, 'apprenants']);
 Route::get('/apprenant/formations',           [InscriptionController::class, 'mesFormations']);
 
 // ─── Messagerie ───────────────────────────────────────────────

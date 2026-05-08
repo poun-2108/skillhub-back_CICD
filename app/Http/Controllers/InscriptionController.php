@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Formation;
 use App\Models\Inscription;
 use App\Services\ActivityLogService;
+use App\Services\InscriptionService;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -16,6 +17,11 @@ class InscriptionController extends Controller
 {
     private const MSG_TOKEN_INVALIDE  = 'Token invalide ou absent';
     private const MSG_USER_NON_TROUVE = 'Utilisateur non trouvé';
+    private const MSG_FORMATION_INTRO = 'Formation introuvable';
+
+    public function __construct(private readonly InscriptionService $inscriptionService = new InscriptionService())
+    {
+    }
 
     /**
      * Inscrire un apprenant a une formation.
@@ -103,6 +109,50 @@ class InscriptionController extends Controller
         }
 
         return $reponse;
+    }
+
+    /**
+     * Liste des apprenants inscrits a une formation.
+     * Accessible uniquement par le formateur proprietaire.
+     * Route : GET /api/formations/{id}/apprenants
+     */
+    public function apprenants($formationId): JsonResponse
+    {
+        $reponse = response()->json(['message' => self::MSG_TOKEN_INVALIDE], 401);
+
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+
+            if (! $user) {
+                $reponse = response()->json(['message' => self::MSG_USER_NON_TROUVE], 404);
+            } else {
+                $reponse = $this->traiterListeApprenants($user, (int) $formationId);
+            }
+        } catch (JWTException $e) {
+            // reponse 401 deja definie
+        }
+
+        return $reponse;
+    }
+
+    /**
+     * Logique de recuperation de la liste des apprenants pour un formateur authentifie.
+     */
+    private function traiterListeApprenants($user, int $formationId): JsonResponse
+    {
+        $formation = Formation::find($formationId);
+
+        if (! $formation) {
+            return response()->json(['message' => self::MSG_FORMATION_INTRO], 404);
+        }
+
+        if ($user->role !== 'formateur' || $formation->formateur_id !== $user->id) {
+            return response()->json([
+                'message' => 'Vous n\'êtes pas propriétaire de cette formation',
+            ], 403);
+        }
+
+        return response()->json($this->inscriptionService->listerApprenants($formation->id));
     }
 
     /**
